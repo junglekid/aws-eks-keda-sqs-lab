@@ -13,6 +13,9 @@ spec:
         kind: GitRepository
         name: sqs-app
         namespace: flux-system
+  install:
+    remediation:
+      retries: 5
   values:
     deployment:
       container:
