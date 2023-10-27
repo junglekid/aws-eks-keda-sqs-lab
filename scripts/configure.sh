@@ -12,6 +12,7 @@ function replace_in_file() {
 echo "Gathering AWS Resources and Names necessary to run the Kubernetes Applications and Services deployed by Flux from Terraform Output..."
 echo "Hang on..."
 echo "This can take between 30 to 90 seconds..."
+echo ""
 
 # Set this to GitHub Repo hosting the SQS_APP Helm Chart
 SQS_APP_GITHUB_URL="https://github.com/junglekid/aws-eks-keda-sqs-lab"
@@ -32,7 +33,6 @@ AWS_ACM_SQS_APP_ARN=$(terraform output -raw sqs_app_acm_certificate_arn)
 SQS_QUEUE_NAME=$(terraform output -raw sqs_queue_name)
 SQS_QUEUE_URL=$(terraform output -raw sqs_queue_url)
 
-echo ""
 echo "Configuring Apps managed by FluxCD..."
 echo ""
 
@@ -82,7 +82,6 @@ replace_in_file 's|SA_EXTERNAL_DNS_IAM_ROLE_ARN|'"$SA_EXTERNAL_DNS_IAM_ROLE_ARN"
 cp -f ./k8s/templates/infrastructure/controllers/keda/release.yaml ./k8s/infrastructure/controllers/keda/release.yaml
 replace_in_file 's|SA_SQS_KEDA_IAM_ROLE_ARN|'"$SA_SQS_KEDA_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/keda/release.yaml
 
-echo ""
 echo "Pushing changes to Git repository..."
 echo ""
 
