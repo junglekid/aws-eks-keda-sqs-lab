@@ -14,7 +14,7 @@ echo "Hang on..."
 echo "This can take between 30 to 90 seconds..."
 
 # Set this to GitHub Repo hosting the SQS_APP Helm Chart
-    SQS_APP_GITHUB_URL="https://github.com/junglekid/aws-eks-keda-sqs-lab"
+SQS_APP_GITHUB_URL="https://github.com/junglekid/aws-eks-keda-sqs-lab"
 
 cd ../terraform
 AWS_REGION=$(terraform output -raw aws_region)
