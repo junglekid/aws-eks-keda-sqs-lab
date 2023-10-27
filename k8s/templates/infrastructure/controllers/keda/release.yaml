@@ -1,0 +1,27 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: keda
+  namespace: flux-system
+  labels:
+    app.kubernetes.io/part-of: keda
+spec:
+  chart:
+    spec:
+      chart: keda
+      sourceRef:
+        kind: HelmRepository
+        name: keda
+        namespace: flux-system
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
+  values:
+    serviceAccount:
+      create: true
+      annotations:
+        eks.amazonaws.com/role-arn: SA_SQS_KEDA_IAM_ROLE_ARN
+  interval: 2m0s
+  releaseName: keda
+  targetNamespace: keda
