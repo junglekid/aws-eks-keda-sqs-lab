@@ -92,7 +92,7 @@ docker push ${ECR_SQS_PRODUCER_REPO}:latest
      --owner=$GITHUB_OWNER \
      --repository=$GITHUB_REPO_NAME \
      --private=false \
-     --path=clusters/eks-istio-lab \
+     --path=clusters/eks-keda-sqs-lab \
      --personal
    ```
 
