@@ -23,7 +23,7 @@ spec:
           repository: ECR_SQS_CONSUMER_REPO
           tag: latest
         sqsQueueName: SQS_QUEUE_NAME
-      serviceAccountName: SA_AWS_SQS_NAME
+      serviceAccountName: SA_SQS_APP_NAME
   interval: 2m0s
   releaseName: sqs-consumer
   targetNamespace: sqs-app

@@ -23,7 +23,7 @@ spec:
           repository: 704855531002.dkr.ecr.us-west-2.amazonaws.com/eks-keda-sqs-lab-consumer
           tag: latest
         sqsQueueName: eks-keda-sqs-lab-queue
-      serviceAccountName: SA_AWS_SQS_NAME
+      serviceAccountName: sa-aws-sqs
   interval: 2m0s
   releaseName: sqs-consumer
   targetNamespace: sqs-app
