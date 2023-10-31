@@ -1,7 +1,0 @@
-deployment:
-  container:
-    image:
-      repository: 704855531002.dkr.ecr.us-west-2.amazonaws.com/eks-fluxcd-lab-sqs-consumer
-      tag: latest
-    sqsQueueName: eks-fluxcd-lab-sqs-queue
-  serviceAccountName: sa-aws-sqs
