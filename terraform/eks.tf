@@ -39,7 +39,7 @@ resource "aws_eks_node_group" "eks" {
   node_group_name = "node_workers"
   node_role_arn   = aws_iam_role.eks_node.arn
   subnet_ids      = module.vpc.private_subnets
-  instance_types  = ["m5a.large", "m5.large"]
+  instance_types  = ["m6a.large", "m6i.large"]
   capacity_type   = "SPOT"
 
   scaling_config {
