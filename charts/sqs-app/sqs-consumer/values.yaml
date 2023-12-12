@@ -11,9 +11,9 @@ deployment:
     resources:
       requests:
         cpu: 250m
-        memory: 256Mi
+        memory: 512Mi
       limits:
-        cpu: 500m
-        memory: 256Mi
+        cpu: 1000m
+        memory: 512Mi
   replicas: 1
   serviceAccountName:
