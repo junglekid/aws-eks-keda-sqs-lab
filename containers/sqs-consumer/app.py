@@ -74,13 +74,12 @@ def main():
     Main Function
     """
     sqs_queue_name = os.getenv('SQS_QUEUE_NAME')
-    # sqs_queue_name = 'eks-fluxcd-lab-sqs-queue'
     sleep_wait = int(os.getenv('SLEEP_WAIT'))
-    # sleep_wait = 10
 
     sleep = True
     while sleep:
         sqs_queue = get_queue(sqs_queue_name)
+
         batch_size = 10
         print(f"Receiving, handling, and deleting messages in \
               batches of {batch_size}.")

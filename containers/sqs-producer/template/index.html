@@ -3,26 +3,6 @@
 <html>
 <head>
     <title>Using Keda to Scale Amazon Elastic Kubernetes Service Pods based on AWS SQS Queue</title>
-    <script>
-        function refreshPods() {
-            fetch('/get_pods')
-                .then(response => response.json())
-                .then(data => {
-                    const podList = document.getElementById('podList');
-                    podList.innerHTML = '';  // Clear existing list
-                    data.pod_names.forEach(podName => {
-                        const li = document.createElement('li');
-                        li.textContent = podName;
-                        podList.appendChild(li);
-                    });
-                    // document.getElementById('podCount').textContent = data.pod_names.length;
-                    document.getElementById('podCount').textContent = data.pod_count
-                })
-                .catch(error => console.error('Error:', error));
-        }
-        // Set interval for automatic refresh every 5000 milliseconds (5 seconds)
-        setInterval(refreshPods, 5000);
-    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -89,27 +69,36 @@
             display: inline-block;
             text-align: left;
         }
-
-        .refresh-button {
-            margin-top: 20px;
-            background-color: #f90;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            display: block;
-            width: fit-content;
-            margin: 20px auto;
-        }
-        .refresh-button:hover {
-            background-color: #f90;
-        }
     </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        function refreshData() {
+            $.getJSON('/get_pods', function(data) {
+                var list = document.getElementById('podList');
+
+                podList.innerHTML = '';  // Clear existing list
+                data.pod_names.forEach(podName => {
+                    var li = document.createElement('li');
+                    li.textContent = podName;
+                    podList.appendChild(li);
+                });
+
+                $('#podCount').text(data.pod_count);
+            });
+
+            $.getJSON('/get_message_count', function(data) {
+                $('#messageCount').text(data.message_count);
+            });
+        }
+
+        // Refresh every 5 seconds
+        setInterval(refreshData, 5000);
+        // Initial load
+        $(document).ready(refreshData);
+    </script>
 </head>
 <body>
-    <div class="sqs"></div>
+    <div class="sqs">
         <h2>Using Keda to Scale Amazon Elastic Kubernetes Service Pods based on AWS SQS Queue</h2>
         <form method="POST" action="/">
             <label for="number">Enter a number of messages to send to AWS SQS Queue:</label>
@@ -117,22 +106,15 @@
             <button type="submit">Submit</button>
         </form>
     </div>
-    <div class="container">
-        <h2>SQS Consumer Pod Information</h2>
-        <p>Pod Count: <span id="podCount">{{ pod_count }}</span></p>
-        <h3>Pod Names:</h3>
+    <div class="container" id="refreshData">
+        <h4>Approximate Number of AWS SQS Queue Messages: <span id="messageCount">{{ message_count }}</span></h4>
+        <h4>Number of SQS Consumer Pods: <span id="podCount">{{ pod_count }}</span></h4>
+        <h4>SQS Consumer Pod Names:</h4>
         <ul id="podList">
-            {% for name in pod_names %}
-            <li>{{ name }}</li>
-            {% endfor %}
         </ul>
     </div>
-    <div>
-        <button class="refresh-button" onclick="refreshPods()">Refresh Pods</button>
-        <!-- <button class="refresh-button" onclick="location.reload();">Refresh</button> -->
-    </div>
     <footer>
-        <p>SQS Consumer Pod Information automatically refreshes every 5 seconds</p>
+        <p>Page automatically refreshes every 5 seconds</p>
     </footer>
 </body>
 </html>
