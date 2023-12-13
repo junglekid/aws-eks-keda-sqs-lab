@@ -8,9 +8,10 @@ import sys
 import threading
 import boto3
 from botocore.exceptions import ClientError
+from kubernetes import client, config
 
 # import queue_wrapper
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 
 
 app = Flask(__name__, template_folder='template')
@@ -19,20 +20,73 @@ logger = logging.getLogger(__name__)
 sqs = boto3.resource("sqs")
 
 
+def get_current_namespace():
+    '''
+    Function to get Kubernetes Namespace
+    '''
+    try:
+        with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace", "r") as file:
+            return file.read().strip()
+    except IOError as e:
+        print(f"Error reading namespace file: {e}")
+        return None
+
+
+def get_pods_with_label(label_selector=''):
+    '''
+    Function to get all Kubernetes Pods with a specific label.
+    '''
+    config.load_incluster_config()
+
+    v1 = client.CoreV1Api()
+    namespace = get_current_namespace()
+    pods = v1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
+    pod_names = [pod.metadata.name for pod in pods.items]
+    return pod_names, len(pod_names)
+
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     """
     Flask Main App
     """
+    label_selector = 'app=sqs-consumer'
+    pod_names, pod_count = get_pods_with_label(label_selector)
+
     if request.method == 'GET':
-        return render_template('index.html')
+        return render_template('index.html', pod_count=pod_count, pod_names=pod_names)
 
     max_messages = int(request.form.get('number'))
 
     if max_messages:
         sqs_demo(max_messages)
 
-    return render_template('index.html')
+    return render_template('index.html', pod_count=pod_count, pod_names=pod_names)
+
+
+# @app.route('/pods')
+# def pods_info():
+#     """
+#     Display SQS Consumer Pods
+#     """
+#     label_selector = 'app=sqs-consumer'
+#     pod_names, pod_count = get_pods_with_label(label_selector)
+#     # return jsonify({'number_of_pods': count, 'pod_names': pod_names})
+
+#     return render_template('pods.html', pod_count=pod_count, pod_names=pod_names)
+
+
+@app.route('/get_pods')
+def get_pods():
+    """
+    Get SQS Consumer Pods
+    """
+    label_selector = 'app=sqs-consumer'
+    pod_names, pod_count = get_pods_with_label(label_selector)
+
+    # pod_names = get_pods_with_label(label_selector)
+
+    return jsonify({"pod_names": pod_names, "pod_count": pod_count})
 
 
 def process_sqs_messages(sqs_queue, max_messages):
@@ -62,7 +116,6 @@ def sqs_demo(max_messages):
     """
     # Assign SQS Queue Name
     sqs_queue_name = os.getenv('SQS_QUEUE_NAME')
-    # sqs_queue_name = 'eks-fluxcd-lab-sqs-queue'
 
     # Get AWS SQS Queue
     sqs_queue = get_queue(sqs_queue_name)

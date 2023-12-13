@@ -2,12 +2,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Run AWS Command</title>
+    <title>Using Keda to Scale Amazon Elastic Kubernetes Service Pods based on AWS SQS Queue</title>
+    <script>
+        function refreshPods() {
+            fetch('/get_pods')
+                .then(response => response.json())
+                .then(data => {
+                    const podList = document.getElementById('podList');
+                    podList.innerHTML = '';  // Clear existing list
+                    data.pod_names.forEach(podName => {
+                        const li = document.createElement('li');
+                        li.textContent = podName;
+                        podList.appendChild(li);
+                    });
+                    // document.getElementById('podCount').textContent = data.pod_names.length;
+                    document.getElementById('podCount').textContent = data.pod_count
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        // Set interval for automatic refresh every 5000 milliseconds (5 seconds)
+        setInterval(refreshPods, 5000);
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f7f7f7;
             text-align: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sqs {
+            margin: 0 auto;
+            width: 80%;
         }
 
         form {
@@ -39,20 +68,71 @@
             color: #000;
             border: none;
             padding: 10px 20px;
-            border-radius: 3px;
+            border-radius: 5px;
             cursor: pointer;
+            font-weight: bold;
         }
 
         button[type="submit"]:hover {
             background-color: #f90;
         }
+
+        .container {
+            margin: 0 auto;
+            width: 80%;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0 auto;
+            display: inline-block;
+            text-align: left;
+        }
+
+        .refresh-button {
+            margin-top: 20px;
+            background-color: #f90;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+        }
+        .refresh-button:hover {
+            background-color: #f90;
+        }
     </style>
 </head>
 <body>
-    <form method="POST" action="/">
-        <label for="number">Enter a number of messages to send to AWS SQS Queue:</label>
-        <input type="text" name="number" id="number">
-        <button type="submit">Submit</button>
-    </form>
+    <div class="sqs"></div>
+        <h2>Using Keda to Scale Amazon Elastic Kubernetes Service Pods based on AWS SQS Queue</h2>
+        <form method="POST" action="/">
+            <label for="number">Enter a number of messages to send to AWS SQS Queue:</label>
+            <input type="text" name="number" id="number">
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <div class="container">
+        <h2>SQS Consumer Pod Information</h2>
+        <p>Pod Count: <span id="podCount">{{ pod_count }}</span></p>
+        <h3>Pod Names:</h3>
+        <ul id="podList">
+            {% for name in pod_names %}
+            <li>{{ name }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div>
+        <button class="refresh-button" onclick="refreshPods()">Refresh Pods</button>
+        <!-- <button class="refresh-button" onclick="location.reload();">Refresh</button> -->
+    </div>
+    <footer>
+        <p>SQS Consumer Pod Information automatically refreshes every 5 seconds</p>
+    </footer>
 </body>
 </html>
