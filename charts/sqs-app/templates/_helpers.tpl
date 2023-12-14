@@ -35,7 +35,7 @@ Common labels
 */}}
 {{- define "sqs-app.labels" -}}
 helm.sh/chart: {{ include "sqs-app.chart" . }}
-{{ include "sqs-app.selectorLabels" . }}
+# {{ include "sqs-app.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,9 +45,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "sqs-app.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "sqs-app.fullname" . }}
-{{- end }}
+# {{- define "sqs-app.selectorLabels" -}}
+# app.kubernetes.io/name: {{ include "sqs-app.fullname" . }}
+# {{- end }}
 
 {{/*
 Create the name of the service account to use

@@ -4,6 +4,8 @@ kind: Ingress
 metadata:
   name: {{ .Values.sqsProducer.ingress.name | quote }}
   labels:
+    name: {{ .Values.sqsProducer.ingress.name | quote }}
+    app.kubernetes.io/name: {{ .Values.sqsProducer.ingress.name | quote }}
   {{- include "sqs-app.labels" . | nindent 4 }}
   {{- with .Values.sqsProducer.ingress.annotations }}
   annotations:
@@ -17,7 +19,7 @@ spec:
       paths:
       - backend:
           service:
-            name: {{ .Values.sqsProducer.ingress.name | quote }}
+            name: {{ .Values.sqsProducer.service.name | quote }}
             port:
               number: {{ .Values.sqsProducer.ingress.port }}
         path: /

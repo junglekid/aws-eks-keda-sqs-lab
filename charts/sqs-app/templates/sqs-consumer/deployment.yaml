@@ -5,6 +5,7 @@ metadata:
   labels:
     app: {{ .Values.sqsConsumer.deployment.name | quote }}
     app.kubernetes.io/name: {{ .Values.sqsConsumer.deployment.name | quote }}
+    {{- include "sqs-app.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.sqsConsumer.deployment.replicas }}
   strategy:
@@ -20,6 +21,7 @@ spec:
       labels:
         app: {{ .Values.sqsConsumer.deployment.name | quote }}
         app.kubernetes.io/name: {{ .Values.sqsConsumer.deployment.name | quote }}
+        {{- include "sqs-app.labels" . | nindent 4 }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       containers:
