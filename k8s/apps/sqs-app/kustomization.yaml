@@ -4,4 +4,4 @@ resources:
   - repository.yaml
   - namespace.yaml
   - release.yaml
-#   - config.yaml
+  - config.yaml
