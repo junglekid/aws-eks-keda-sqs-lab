@@ -39,7 +39,7 @@ echo ""
 
 cd ..
 # Configure SQS App
-cp -f ./k8s/templates/apps/sqs-app/config.yaml ./k8s/apps/sqs-appr/config.yaml
+cp -f ./k8s/templates/apps/sqs-app/config.yaml ./k8s/apps/sqs-app/config.yaml
 replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/apps/sqs-app/config.yaml
 replace_in_file 's|SQS_QUEUE_URL|'"$SQS_QUEUE_URL"'|g' ./k8s/apps/sqs-app/config.yaml
 
@@ -92,8 +92,8 @@ git add ./k8s/infrastructure/controllers/external-dns/release.yaml
 git add ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
 git add ./k8s/infrastructure/controllers/keda/release.yaml
 
-# git commit -m "Updating Apps"
-# git push &> /dev/null
+git commit -m "Updating Apps"
+git push &> /dev/null
 
 echo ""
 echo "Finished configuring Apps managed by FluxCD..."
