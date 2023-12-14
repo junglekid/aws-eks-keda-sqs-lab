@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ .Values.sqsProducer.deployment.name | quote }}
   labels:
-    app: {{ .Values.sqsProducer.deployment.name | quote }}
+    name: {{ .Values.sqsProducer.deployment.name | quote }}
     app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
 spec:
   replicas: {{ .Values.sqsProducer.deployment.replicas }}
@@ -13,12 +13,12 @@ spec:
       maxUnavailable: 1
   selector:
     matchLabels:
-      app: {{ .Values.sqsProducer.deployment.name | quote }}
+      name: {{ .Values.sqsProducer.deployment.name | quote }}
       app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
   template:
     metadata:
       labels:
-        app: {{ .Values.sqsProducer.deployment.name | quote }}
+        name: {{ .Values.sqsProducer.deployment.name | quote }}
         app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
