@@ -23,10 +23,10 @@ locals {
   sqs_name = "eks-keda-sqs-lab"
 
   # EKS Configuration
-  eks_cluster_name             = "eks-keda-sqs-lab"
-  eks_cluster_version          = "1.28" # To always use the latest set to "" instead of "1.xx"
-  eks_iam_role_prefix          = "eks-keda-sqs-lab"
-  eks_sqs_service_account_name = "sa-aws-sqs"
+  eks_cluster_name                 = "eks-keda-sqs-lab"
+  eks_cluster_version              = "1.28" # To always use the latest set to "" instead of "1.xx"
+  eks_iam_role_prefix              = "eks-keda-sqs-lab"
+  eks_sqs_app_service_account_name = "sa-aws-sqs-app"
 
   # ACM and Route53 Configuration
   public_base_domain_name = "dallin.brewsentry.com" # Update with your root domain

@@ -21,6 +21,11 @@ output "ecr_sqs_producer_repo_url" {
   value = module.ecr_sqs_producer.repository_url
 }
 
+# Output EKS Service Account for SQS App
+output "eks_sa_sqs_app_iam_role_arn" {
+  value = module.sqs_irsa_role.iam_role_arn
+}
+
 # Output EKS Service Account for AWS Load Balancer Controller
 output "eks_sa_alb_iam_role_arn" {
   value = module.load_balancer_controller_irsa_role.iam_role_arn
@@ -53,7 +58,7 @@ output "sqs_app_domain_name" {
 
 # Output EKS Service Account for SQS
 output "sa_sqs_app_name" {
-  value = local.eks_sqs_service_account_name
+  value = local.eks_sqs_app_service_account_name
 }
 
 output "sqs_app_acm_certificate_arn" {

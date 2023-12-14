@@ -59,7 +59,7 @@ module "sqs_irsa_role" {
   oidc_providers = {
     ex = {
       provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["${kubernetes_namespace.sqs_app.metadata[0].name}:${local.eks_sqs_service_account_name}"]
+      namespace_service_accounts = ["sqs-app:${local.eks_sqs_app_service_account_name}"]
     }
   }
 
@@ -80,7 +80,7 @@ module "sqs_keda_irsa_role" {
   oidc_providers = {
     ex = {
       provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["${kubernetes_namespace.keda.metadata[0].name}:keda-operator"]
+      namespace_service_accounts = ["keda:keda-operator"]
     }
   }
 
