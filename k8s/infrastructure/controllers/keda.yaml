@@ -6,6 +6,12 @@ metadata:
   labels:
     app.kubernetes.io/part-of: keda
 spec:
+  releaseName: keda
+  targetNamespace: keda
+  interval: 30m
+  dependsOn:
+    - name: aws-load-balancer-controller
+      namespace: flux-system
   chart:
     spec:
       chart: keda
@@ -22,6 +28,3 @@ spec:
       create: true
       annotations:
         eks.amazonaws.com/role-arn: arn:aws:iam::704855531002:role/eks-keda-sqs-lab-sqs-keda
-  interval: 2m0s
-  releaseName: keda
-  targetNamespace: keda
