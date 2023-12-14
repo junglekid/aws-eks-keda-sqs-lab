@@ -4,7 +4,7 @@ serviceAccount:
   name:
   annotations: {}
 
-sqs-consumer:
+sqsConsumer:
   deployment:
     name: sqs-consumer
     container:
@@ -24,7 +24,7 @@ sqs-consumer:
           memory: 512Mi
     replicas: 1
 
-sqs-producer:
+sqsProducer:
   deployment:
     name: sqs-producer
     container:
