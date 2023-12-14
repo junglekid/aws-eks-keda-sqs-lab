@@ -9,9 +9,6 @@ spec:
   maxReplicaCount: 20
   pollingInterval: 15
   cooldownPeriod:  30
-  # fallback:
-  #   failureThreshold: 3
-  #   replicas: 2
   scaleTargetRef:
     name: sqs-consumer
   triggers:

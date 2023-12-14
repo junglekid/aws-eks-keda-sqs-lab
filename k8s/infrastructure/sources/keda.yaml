@@ -2,8 +2,8 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: eks-charts
+  name: keda
   namespace: flux-system
 spec:
-  interval: 24h
-  url: https://aws.github.io/eks-charts
+  interval: 24m0s
+  url: https://kedacore.github.io/charts

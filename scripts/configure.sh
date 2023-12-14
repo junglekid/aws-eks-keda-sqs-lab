@@ -60,27 +60,27 @@ cp -f ./k8s/templates/apps/sources/sqs-app.yaml ./k8s/apps/sources/sqs-app.yaml
 replace_in_file 's|SQS_APP_GITHUB_URL|'"$SQS_APP_GITHUB_URL"'|g' ./k8s/apps/sources/sqs-app.yaml
 
 # Configure AWS Load Balanancer Controller
-cp -f ./k8s/templates/infrastructure/controllers/aws-load-balancer-controller/release.yaml ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
-replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
-replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
-replace_in_file 's|SA_ALB_IAM_ROLE_ARN|'"$SA_ALB_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
+cp -f ./k8s/templates/infrastructure/controllers/aws-load-balancer-controller.yaml ./k8s/infrastructure/controllers/aws-load-balancer-controller.yaml
+replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller.yaml
+replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller.yaml
+replace_in_file 's|SA_ALB_IAM_ROLE_ARN|'"$SA_ALB_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller.yaml
 
 # Configure Cluster Autoscaler
-cp -f ./k8s/templates/infrastructure/controllers/cluster-autoscaler/release.yaml ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
-replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
-replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
-replace_in_file 's|SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN|'"$SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
+cp -f ./k8s/templates/infrastructure/controllers/cluster-autoscaler.yaml ./k8s/infrastructure/controllers/cluster-autoscaler.yaml
+replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler.yaml
+replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler.yaml
+replace_in_file 's|SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN|'"$SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler.yaml
 
 # Configure External DNS
-cp -f ./k8s/templates/infrastructure/controllers/external-dns/release.yaml ./k8s/infrastructure/controllers/external-dns/release.yaml
-replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
-replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
-replace_in_file 's|EXTERNAL_DNS_DOMAIN_FILTER|'"$EXTERNAL_DNS_DOMAIN_FILTER"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
-replace_in_file 's|SA_EXTERNAL_DNS_IAM_ROLE_ARN|'"$SA_EXTERNAL_DNS_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
+cp -f ./k8s/templates/infrastructure/controllers/external-dns.yaml ./k8s/infrastructure/controllers/external-dns.yaml
+replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/external-dns.yaml
+replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/external-dns.yaml
+replace_in_file 's|EXTERNAL_DNS_DOMAIN_FILTER|'"$EXTERNAL_DNS_DOMAIN_FILTER"'|g' ./k8s/infrastructure/controllers/external-dns.yaml
+replace_in_file 's|SA_EXTERNAL_DNS_IAM_ROLE_ARN|'"$SA_EXTERNAL_DNS_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/external-dns.yaml
 
 # Configure Keda
-cp -f ./k8s/templates/infrastructure/controllers/keda/release.yaml ./k8s/infrastructure/controllers/keda/release.yaml
-replace_in_file 's|SA_SQS_KEDA_IAM_ROLE_ARN|'"$SA_SQS_KEDA_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/keda/release.yaml
+cp -f ./k8s/templates/infrastructure/controllers/keda.yaml ./k8s/infrastructure/controllers/keda.yaml
+replace_in_file 's|SA_SQS_KEDA_IAM_ROLE_ARN|'"$SA_SQS_KEDA_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/keda.yaml
 
 echo "Pushing changes to Git repository..."
 echo ""
@@ -93,10 +93,10 @@ git add ./k8s/apps/base/sqs-producer/release.yaml
 git add ./k8s/apps/sources/sqs-app.yaml
 
 # Add Infrastructure Controller files
-git add ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
-git add ./k8s/infrastructure/controllers/external-dns/release.yaml
-git add ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
-git add ./k8s/infrastructure/controllers/keda/release.yaml
+git add ./k8s/infrastructure/controllers/aws-load-balancer-controller.yaml
+git add ./k8s/infrastructure/controllers/external-dns.yaml
+git add ./k8s/infrastructure/controllers/cluster-autoscaler.yaml
+git add ./k8s/infrastructure/controllers/keda.yaml
 
 git commit -m "Updating Apps"
 git push &> /dev/null
