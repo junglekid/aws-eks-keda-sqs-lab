@@ -14,6 +14,7 @@ spec:
   selector:
     matchLabels:
       name: {{ .Values.sqsProducer.deployment.name | quote }}
+      app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
   template:
     metadata:
       labels:
