@@ -26,7 +26,8 @@ def get_current_namespace():
     Function to get Kubernetes Namespace
     """
     try:
-        with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace", "r") as file:
+        with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace",
+                  "r", encoding="utf-8") as file:
             return file.read().strip()
     except IOError as e:
         print(f"Error reading namespace file: {e}")
@@ -41,7 +42,8 @@ def get_pods_with_label(label_selector=''):
 
     v1 = client.CoreV1Api()
     namespace = get_current_namespace()
-    pods = v1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
+    pods = v1.list_namespaced_pod(namespace=namespace,
+                                  label_selector=label_selector)
     pod_names = [pod.metadata.name for pod in pods.items]
 
     return pod_names, len(pod_names)
@@ -79,14 +81,17 @@ def home():
     message_count = get_num_of_messages()
 
     if request.method == 'GET':
-        return render_template('index.html', pod_count=pod_count, pod_names=pod_names, message_count=message_count)
+        return render_template('index.html', pod_count=pod_count,
+                               pod_names=pod_names,
+                               message_count=message_count)
 
     max_messages = int(request.form.get('number'))
 
     if max_messages:
         sqs_demo(max_messages)
 
-    return render_template('index.html', pod_count=pod_count, pod_names=pod_names, message_count=message_count)
+    return render_template('index.html', pod_count=pod_count,
+                           pod_names=pod_names, message_count=message_count)
 
 
 @app.route('/get_pods')
@@ -162,8 +167,10 @@ def sqs_demo(max_messages):
         total_messages = messages_t1 + messages_t2
 
         # creating threads
-        t1 = threading.Thread(target=process_sqs_messages, args=(sqs_queue, messages_t1))
-        t2 = threading.Thread(target=process_sqs_messages, args=(sqs_queue, messages_t2))
+        t1 = threading.Thread(target=process_sqs_messages,
+                              args=(sqs_queue, messages_t1))
+        t2 = threading.Thread(target=process_sqs_messages,
+                              args=(sqs_queue, messages_t2))
 
         # starting threads
         t1.start()
@@ -184,10 +191,14 @@ def sqs_demo(max_messages):
         total_messages = messages_t1 + messages_t2 + messages_t3 + messages_t4
 
         # creating thread
-        t1 = threading.Thread(target=process_sqs_messages, args=(sqs_queue, messages_t1))
-        t2 = threading.Thread(target=process_sqs_messages, args=(sqs_queue, messages_t2))
-        t3 = threading.Thread(target=process_sqs_messages, args=(sqs_queue, messages_t3))
-        t4 = threading.Thread(target=process_sqs_messages, args=(sqs_queue, messages_t4))
+        t1 = threading.Thread(target=process_sqs_messages,
+                              args=(sqs_queue, messages_t1))
+        t2 = threading.Thread(target=process_sqs_messages,
+                              args=(sqs_queue, messages_t2))
+        t3 = threading.Thread(target=process_sqs_messages,
+                              args=(sqs_queue, messages_t3))
+        t4 = threading.Thread(target=process_sqs_messages,
+                              args=(sqs_queue, messages_t4))
 
         # starting threads
         t1.start()
@@ -231,7 +242,8 @@ def send_message(queue, message, message_attributes=None):
         #     MessageBody=message_body, MessageAttributes=message_attributes
         # )
         response = queue.send_message(
-            MessageBody=message["body"], MessageAttributes=message["attributes"]
+            MessageBody=message["body"],
+            MessageAttributes=message["attributes"]
         )
     except ClientError as error:
         logger.exception("Send message failed: %s", message)
@@ -243,9 +255,9 @@ def send_message(queue, message, message_attributes=None):
 def send_messages(queue, messages):
     """
     Send a batch of messages in a single request to an SQS queue.
-    This request may return overall success even when some messages were not sent.
-    The caller must inspect the Successful and Failed lists in the response and
-    resend any failed messages.
+    This request may return overall success even when some
+    messages were not sent. The caller must inspect the
+    Successful and Failed lists in the response and resend any failed messages.
     """
     try:
         entries = [
