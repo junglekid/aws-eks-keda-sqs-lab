@@ -12,6 +12,8 @@ spec:
   dependsOn:
     - name: aws-load-balancer-controller
       namespace: flux-system
+    - name: metrics-server
+      namespace: flux-system
   chart:
     spec:
       chart: keda

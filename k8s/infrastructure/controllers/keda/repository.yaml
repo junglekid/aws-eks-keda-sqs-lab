@@ -5,5 +5,5 @@ metadata:
   name: keda
   namespace: flux-system
 spec:
-  interval: 24m0s
+  interval: 24h
   url: https://kedacore.github.io/charts
