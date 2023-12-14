@@ -27,6 +27,7 @@ SA_ALB_IAM_ROLE_ARN=$(terraform output -raw eks_sa_alb_iam_role_arn)
 SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN=$(terraform output -raw eks_sa_cluster_autoscaler_iam_role_arn)
 SA_EXTERNAL_DNS_IAM_ROLE_ARN=$(terraform output -raw eks_sa_external_dns_iam_role_arn)
 SA_SQS_KEDA_IAM_ROLE_ARN=$(terraform output -raw eks_sa_sqs_keda_iam_role_arn)
+SA_SQS_APP_IAM_ROLE_ARN=$(terraform output -raw eks_sa_sqs_app_iam_role_arn)
 SA_SQS_APP_NAME=$(terraform output -raw sa_sqs_app_name)
 SQS_APP_DOMAIN_NAME=$(terraform output -raw sqs_app_domain_name)
 AWS_ACM_SQS_APP_ARN=$(terraform output -raw sqs_app_acm_certificate_arn)
@@ -37,27 +38,23 @@ echo "Configuring Apps managed by FluxCD..."
 echo ""
 
 cd ..
-# Configure SQS Consumer App
-cp -f ./k8s/templates/apps/base/sqs-consumer/config.yaml ./k8s/apps/base/sqs-consumer/config.yaml
-replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/apps/base/sqs-consumer/config.yaml
-replace_in_file 's|SQS_QUEUE_URL|'"$SQS_QUEUE_URL"'|g' ./k8s/apps/base/sqs-consumer/config.yaml
+# Configure SQS App
+cp -f ./k8s/templates/apps/sqs-app/config.yaml ./k8s/apps/sqs-appr/config.yaml
+replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/apps/sqs-app/config.yaml
+replace_in_file 's|SQS_QUEUE_URL|'"$SQS_QUEUE_URL"'|g' ./k8s/apps/sqs-app/config.yaml
 
-cp -f ./k8s/templates/apps/base/sqs-consumer/release.yaml ./k8s/apps/base/sqs-consumer/release.yaml
-replace_in_file 's|ECR_SQS_CONSUMER_REPO|'"$ECR_SQS_CONSUMER_REPO"'|g' ./k8s/apps/base/sqs-consumer/release.yaml
-replace_in_file 's|SA_SQS_APP_NAME|'"$SA_SQS_APP_NAME"'|g' ./k8s/apps/base/sqs-consumer/release.yaml
-replace_in_file 's|SQS_QUEUE_NAME|'"$SQS_QUEUE_NAME"'|g' ./k8s/apps/base/sqs-consumer/release.yaml
-
-# Configure SQS Producer App
-cp -f ./k8s/templates/apps/base/sqs-producer/release.yaml ./k8s/apps/base/sqs-producer/release.yaml
-replace_in_file 's|AWS_ACM_SQS_APP_ARN|'"$AWS_ACM_SQS_APP_ARN"'|g' ./k8s/apps/base/sqs-producer/release.yaml
-replace_in_file 's|ECR_SQS_PRODUCER_REPO|'"$ECR_SQS_PRODUCER_REPO"'|g' ./k8s/apps/base/sqs-producer/release.yaml
-replace_in_file 's|SA_SQS_APP_NAME|'"$SA_SQS_APP_NAME"'|g' ./k8s/apps/base/sqs-producer/release.yaml
-replace_in_file 's|SQS_APP_DOMAIN_NAME|'"$SQS_APP_DOMAIN_NAME"'|g' ./k8s/apps/base/sqs-producer/release.yaml
-replace_in_file 's|SQS_QUEUE_NAME|'"$SQS_QUEUE_NAME"'|g' ./k8s/apps/base/sqs-producer/release.yaml
+cp -f ./k8s/templates/apps/sqs-app/release.yaml ./k8s/apps/sqs-app/release.yaml
+replace_in_file 's|AWS_ACM_SQS_APP_ARN|'"$AWS_ACM_SQS_APP_ARN"'|g' ./k8s/apps/sqs-app/release.yaml
+replace_in_file 's|ECR_SQS_CONSUMER_REPO|'"$ECR_SQS_CONSUMER_REPO"'|g' ./k8s/apps/sqs-app/release.yaml
+replace_in_file 's|ECR_SQS_PRODUCER_REPO|'"$ECR_SQS_PRODUCER_REPO"'|g' ./k8s/apps/sqs-app/release.yaml
+replace_in_file 's|SA_SQS_APP_NAME|'"$SA_SQS_APP_NAME"'|g' ./k8s/apps/sqs-app/release.yaml
+replace_in_file 's|SQS_APP_DOMAIN_NAME|'"$SQS_APP_DOMAIN_NAME"'|g' ./k8s/apps/sqs-app/release.yaml
+replace_in_file 's|SQS_QUEUE_NAME|'"$SQS_QUEUE_NAME"'|g' ./k8s/apps/sqs-app/release.yaml
+replace_in_file 's|SA_SQS_APP_IAM_ROLE_ARN|'"$SA_SQS_APP_IAM_ROLE_ARN"'|g' ./k8s/apps/sqs-app/release.yaml
 
 # Configure Source for SQS Consumer and SQS Producer Apps
-cp -f ./k8s/templates/apps/sources/sqs-app.yaml ./k8s/apps/sources/sqs-app.yaml
-replace_in_file 's|SQS_APP_GITHUB_URL|'"$SQS_APP_GITHUB_URL"'|g' ./k8s/apps/sources/sqs-app.yaml
+cp -f ./k8s/templates/apps/sqs-app/repository.yaml ./k8s/apps/sqs-app/repository.yaml
+replace_in_file 's|SQS_APP_GITHUB_URL|'"$SQS_APP_GITHUB_URL"'|g' ./k8s/apps/sqs-app/repository.yaml
 
 # Configure AWS Load Balanancer Controller
 cp -f ./k8s/templates/infrastructure/controllers/aws-load-balancer-controller/release.yaml ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
@@ -86,11 +83,9 @@ echo "Pushing changes to Git repository..."
 echo ""
 
 # Add SQS App files
-git add ./k8s/apps/base/sqs-consumer/config.yaml
-git add ./k8s/apps/base/sqs-consumer/release.yaml
-git add ./k8s/apps/base/sqs-producer/release.yaml
-
-git add ./k8s/apps/sources/sqs-app.yaml
+git add ./k8s/apps/sqs-app/config.yaml
+git add ./k8s/apps/sqs-app/release.yaml
+git add ./k8s/apps/sqs-app/repository.yaml
 
 # Add Infrastructure Controller files
 git add ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml

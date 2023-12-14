@@ -14,7 +14,7 @@ metadata:
   name: read-pods
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.deployment.serviceAccountName }}
+  name: {{ .Values.serviceAccount.name }}
 roleRef:
   kind: Role
   name: pod-reader

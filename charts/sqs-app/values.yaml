@@ -1,0 +1,61 @@
+
+serviceAccount:
+  enabled: true
+  name:
+  annotations: {}
+
+sqs-consumer:
+  deployment:
+    name: sqs-consumer
+    container:
+      image:
+        repository:
+        tag: latest
+      imagePullPolicy: Always
+      containerPort: 8080
+      sqsQueueName:
+      sleepWait: 10
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 512Mi
+    replicas: 1
+
+sqs-producer:
+  deployment:
+    name: sqs-producer
+    container:
+      image:
+        repository:
+        tag: latest
+      imagePullPolicy: Always
+      containerPort: 8080
+      sqsQueueName:
+      sleepWait: 10
+      resources:
+        requests:
+          cpu: 250m
+          memory: 1024Mi
+        limits:
+          cpu: 2000m
+          memory: 1024Mi
+    replicas: 1
+
+  service:
+    name: sqs-producer
+    type: ClusterIP
+    ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+
+  ingress:
+    enabled: false
+    name: sqs-producer
+    port: 80
+    dnsHostname:
+    annotations: {}
