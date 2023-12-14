@@ -11,6 +11,7 @@ spec:
   cooldownPeriod:  30
   scaleTargetRef:
     name: sqs-consumer
+    app.kubernetes.io/name: sqs-consumer
   triggers:
   - type: aws-sqs-queue
     authenticationRef:
