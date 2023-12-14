@@ -52,7 +52,6 @@ replace_in_file 's|SQS_APP_DOMAIN_NAME|'"$SQS_APP_DOMAIN_NAME"'|g' ./k8s/apps/sq
 replace_in_file 's|SQS_QUEUE_NAME|'"$SQS_QUEUE_NAME"'|g' ./k8s/apps/sqs-app/release.yaml
 replace_in_file 's|SA_SQS_APP_IAM_ROLE_ARN|'"$SA_SQS_APP_IAM_ROLE_ARN"'|g' ./k8s/apps/sqs-app/release.yaml
 
-# Configure Source for SQS Consumer and SQS Producer Apps
 cp -f ./k8s/templates/apps/sqs-app/repository.yaml ./k8s/apps/sqs-app/repository.yaml
 replace_in_file 's|SQS_APP_GITHUB_URL|'"$SQS_APP_GITHUB_URL"'|g' ./k8s/apps/sqs-app/repository.yaml
 
@@ -93,8 +92,8 @@ git add ./k8s/infrastructure/controllers/external-dns/release.yaml
 git add ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
 git add ./k8s/infrastructure/controllers/keda/release.yaml
 
-git commit -m "Updating Apps"
-git push &> /dev/null
+# git commit -m "Updating Apps"
+# git push &> /dev/null
 
 echo ""
 echo "Finished configuring Apps managed by FluxCD..."
