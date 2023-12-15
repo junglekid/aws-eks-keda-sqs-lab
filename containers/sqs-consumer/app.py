@@ -80,7 +80,7 @@ def main():
     while sleep:
         sqs_queue = get_queue(sqs_queue_name)
 
-        batch_size = 10
+        batch_size = 5
         print(f"Receiving, handling, and deleting messages in \
               batches of {batch_size}.")
         more_messages = True
