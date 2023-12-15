@@ -9,7 +9,7 @@ metadata:
 spec:
   type: {{ .Values.sqsProducer.service.type }}
   selector:
-    app: {{ .Values.sqsProducer.deployment.name | quote }}
+    name: {{ .Values.sqsProducer.deployment.name | quote }}
     app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
   ports:
 	{{- .Values.sqsProducer.service.ports | toYaml | nindent 2 -}}
