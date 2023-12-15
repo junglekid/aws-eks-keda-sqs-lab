@@ -1,5 +1,7 @@
 # Using KEDA to Scale AWS SQS with Amazon Elastic Kubernetes Service (EKS)
 
+![Using KEDA to Scale AWS SQS with Amazon Elastic Kubernetes Service (EKS)](./images/aws_eks_keda_sqs.png)
+
 ## Table of Contents
 
 1. [Introduction](#introduction)
@@ -92,6 +94,10 @@ Using Kubernetes Event-driven Autoscaling (KEDA) with Amazon Elastic Kubernetes 
 
 In summary, integrating KEDA with EKS enhances the capabilities of Kubernetes in handling event-driven, dynamic workloads in a cloud environment, leading to improved performance, cost efficiency, and operational simplicity.
 
+![KEDA Architecture](./images/keda_arch.png)
+
+<!-- ![KEDA Architecture](https://github.com/kedacore/keda/blob/main/images/keda-arch.png) -->
+
 ## Architecture Overview
 
 - HashiCorp Terraform
@@ -117,6 +123,7 @@ Before you begin, make sure you have the following before starting:
 5. Kubernetes CLI (kubectl). Instructions can be found [here](https://kubernetes.io/docs/tasks/tools/#kubectl).
 6. Flux CLI. Instructions can be found [here](https://fluxcd.io/flux/installation/#install-the-flux-cli).
 7. A GitHub Personal Access Token. Instructions can be found [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic).
+8. k9s - Kubernetes CLI To Manage Your Clusters In Style. Instructions can be found [here](https://k9scli.io/topics/install/)
 
 ## Setup and Deploy Infrastructure
 
