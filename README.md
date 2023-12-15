@@ -16,12 +16,13 @@
 9. [Managing Flux](#managing-flux)
 10. [Kubernetes Addons managed by Flux](#kubernetes-addons-managed-by-flux)
 11. [Applications managed by Flux](#applications-managed-by-flux)
-12. [Clean Up](#clean-up)
+12. [Demo](#demo)
+13. [Clean Up](#clean-up)
     1. [Clean up Applications managed by Flux from Kubernetes](#clean-up-applications-managed-by-flux-from-kubernetes)
     2. [Clean up Kubernetes AddOns managed by Flux from Kubernetes](#clean-up-kubernetes-addons-managed-by-flux-from-kubernetes)
     3. [Uninstall Flux from Kubernetes](#uninstall-flux-from-kubernetes)
     4. [Clean up Terraform](#clean-up-terraform)
-13. [Conclusion](#conclusion)
+14. [Conclusion](#conclusion)
 
 ## Introduction
 
@@ -312,6 +313,14 @@ Flux can manage applications in several ways, but the most common way is through
 
 - SQS Consumer App
 - SQS Producer App
+
+## Demo
+
+Work in Progress
+
+```bash
+kubectl get hpa -n sqs-app
+```
 
 ## Clean Up
 
