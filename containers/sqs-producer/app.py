@@ -9,8 +9,6 @@ import threading
 import boto3
 from botocore.exceptions import ClientError
 from kubernetes import client, config
-
-# import queue_wrapper
 from flask import Flask, render_template, request, jsonify
 
 
@@ -101,8 +99,6 @@ def get_pods():
     """
     label_selector = 'app=sqs-consumer'
     pod_names, pod_count = get_pods_with_label(label_selector)
-
-    # pod_names = get_pods_with_label(label_selector)
 
     return jsonify({"pod_names": pod_names, "pod_count": pod_count})
 
@@ -238,9 +234,6 @@ def send_message(queue, message, message_attributes=None):
         message_attributes = {}
 
     try:
-        # response = queue.send_message(
-        #     MessageBody=message_body, MessageAttributes=message_attributes
-        # )
         response = queue.send_message(
             MessageBody=message["body"],
             MessageAttributes=message["attributes"]
