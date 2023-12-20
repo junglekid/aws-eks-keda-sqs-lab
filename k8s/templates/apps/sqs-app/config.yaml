@@ -6,9 +6,9 @@ metadata:
  namespace: sqs-app
 spec:
   minReplicaCount: 0
-  maxReplicaCount: 20
+  maxReplicaCount: 10
   pollingInterval: 15
-  cooldownPeriod:  30
+  cooldownPeriod:  15
   scaleTargetRef:
     name: sqs-consumer
   triggers:
@@ -17,7 +17,7 @@ spec:
       name: keda-trigger-auth-aws-credentials
     metadata:
       queueURL: SQS_QUEUE_URL
-      queueLength: "5"
+      queueLength: "10"
       awsRegion: "AWS_REGION"
       identityOwner: operator
 ---
