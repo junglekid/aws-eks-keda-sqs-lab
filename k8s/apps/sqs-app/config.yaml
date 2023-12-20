@@ -8,7 +8,7 @@ spec:
   minReplicaCount: 0
   maxReplicaCount: 10
   pollingInterval: 15
-  cooldownPeriod:  15
+  cooldownPeriod:  30
   scaleTargetRef:
     name: sqs-consumer
   triggers:
