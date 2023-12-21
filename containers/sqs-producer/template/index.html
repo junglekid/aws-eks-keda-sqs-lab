@@ -89,6 +89,10 @@
             $.getJSON('/get_message_count', function(data) {
                 $('#messageCount').text(data.message_count);
             });
+
+            $.getJSON('/get_sqs_queue_avg', function(data) {
+                $('#sqsQueueAvg').text(data.sqs_queue_avg);
+            });
         }
 
         // Refresh every 5 seconds
@@ -108,6 +112,7 @@
     </div>
     <div class="container" id="refreshData">
         <h4>Approximate Number of Messages in AWS SQS Queue: <span id="messageCount">{{ message_count }}</span></h4>
+        <h4>HPA SQS Queue Average: <span id="sqsQueueAvg">{{ sqs_queue_avg }}</span></h4>
         <h4>Number of SQS Consumer Pods: <span id="podCount">{{ pod_count }}</span></h4>
         <h4>SQS Consumer Pod Names:</h4>
         <ul id="podList">

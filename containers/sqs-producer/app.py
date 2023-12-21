@@ -8,7 +8,8 @@ import sys
 import threading
 import boto3
 from botocore.exceptions import ClientError
-from kubernetes import client, config
+from kubernetes import client, config, dynamic
+from kubernetes.client import api_client
 from flask import Flask, render_template, request, jsonify
 
 
@@ -45,6 +46,26 @@ def get_pods_with_label(label_selector=''):
     pod_names = [pod.metadata.name for pod in pods.items]
 
     return pod_names, len(pod_names)
+
+
+def get_hpa_sqs_queue_avg():
+    """
+    Function to get all Kubernetes Pods with a specific label.
+    """
+    config.load_incluster_config()
+
+    k8s_client = dynamic.DynamicClient(api_client.ApiClient(configuration=config.load_incluster_config()))
+
+    api = k8s_client.resources.get(api_version="autoscaling/v2", kind="HorizontalPodAutoscaler")
+    namespace = get_current_namespace()
+    hpa = api.get(namespace=namespace)
+
+    if not hpa.items[0].status.currentMetrics:
+        sqs_queue_avg = 0
+    else:
+        sqs_queue_avg = hpa.items[0].status.currentMetrics[0].external.current.averageValue
+
+    return sqs_queue_avg
 
 
 def get_num_of_messages():
@@ -111,6 +132,16 @@ def get_msgs():
     message_count = get_num_of_messages()
 
     return jsonify({"message_count": message_count})
+
+
+@app.route('/get_sqs_queue_avg')
+def sqs_queue_avg():
+    """
+    Get the approximate number of messages in AWS SQS Queue
+    """
+    sqs_queue_avg = get_hpa_sqs_queue_avg()
+
+    return jsonify({"sqs_queue_avg": sqs_queue_avg})
 
 
 def process_sqs_messages(sqs_queue, max_messages):
