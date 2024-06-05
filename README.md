@@ -307,8 +307,9 @@ For additional information on using Flux, please look at the following series I 
 Below are the Applications that Flux manages, the Kubernetes Addons will be deployed and configured by Flux first. The following Kubernetes Addons will be installed.
 
 - AWS Application Load Balancer Controller
-- External DNS
 - Cluster Autoscaler
+- Capacitor - A general purpose UI for FluxCD
+- External DNS
 - Keda
 - Metrics Server
 
@@ -371,6 +372,7 @@ kubectl get hpa -n sqs-app
 
    ```bash
    flux suspend kustomization infra-controllers
+   flux suspend kustomization capacitor
    ```
 
 2. Delete Kubernetes Addons managed by Flux
@@ -391,17 +393,20 @@ kubectl get hpa -n sqs-app
 4. Delete Application sources managed by Flux
 
    ```bash
+   flux delete source oci -s capacitor
    flux delete source helm -s cluster-autoscaler
    flux delete source helm -s eks-charts
    flux delete source helm -s external-dns
    flux delete source helm -s keda
    flux delete source helm -s metrics-server
    flux delete kustomization -s infra-controllers
+   flux delete kustomization -s capacitor
    ```
 
 5. Verify Kubernetes Addons were removed successfully
 
    ```bash
+   kubectl -n flux-system get all -l app.kubernetes.io/instance=capacitor
    kubectl -n kube-system get all -l app.kubernetes.io/name=external-dns
    kubectl -n kube-system get all -l app.kubernetes.io/name=aws-load-balancer-controller
    kubectl -n kube-system get all -l app.kubernetes.io/name=aws-cluster-autoscaler
