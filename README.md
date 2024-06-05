@@ -328,6 +328,8 @@ Work in Progress
 
 ```bash
 kubectl get hpa -n sqs-app
+kubectl scale deployment -n sqs-app sqs-producer --replicas 0
+kubectl scale deployment -n sqs-app sqs-producer --replicas 1
 ```
 
 ## Clean Up
