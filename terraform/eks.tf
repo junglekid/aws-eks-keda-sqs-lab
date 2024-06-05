@@ -1,7 +1,8 @@
 # Create AWS EKS Cluster
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.15"
+  # version = "~> 19.15"
+  version = "~> 20.13"
 
   cluster_name                    = local.eks_cluster_name
   cluster_version                 = local.eks_cluster_version
@@ -11,18 +12,18 @@ module "eks" {
   cluster_addons = {
     kube-proxy = {
       most_recent                 = true
-      resolve_conflicts           = "OVERWRITE"
+      # resolve_conflicts           = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
     }
     vpc-cni = {
       most_recent                 = true
-      resolve_conflicts           = "OVERWRITE"
+      # resolve_conflicts           = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
       service_account_role_arn    = module.vpc_cni_ipv4_irsa_role.iam_role_arn
     }
     coredns = {
       most_recent                 = true
-      resolve_conflicts           = "OVERWRITE"
+      # resolve_conflicts           = "OVERWRITE"
       resolve_conflicts_on_update = "OVERWRITE"
     }
   }
