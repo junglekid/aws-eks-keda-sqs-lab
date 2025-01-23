@@ -7,7 +7,7 @@ metadata:
 spec:
   minReplicaCount: 0
   maxReplicaCount: 10
-  pollingInterval: 5
+  pollingInterval: 30
   cooldownPeriod:  30
   scaleTargetRef:
     name: sqs-consumer
@@ -17,7 +17,7 @@ spec:
       name: keda-trigger-auth-aws-credentials
     metadata:
       queueURL: https://sqs.us-west-2.amazonaws.com/704855531002/eks-keda-sqs-lab-queue
-      queueLength: "100"
+      queueLength: "10"
       awsRegion: "us-west-2"
       identityOwner: operator
 ---
