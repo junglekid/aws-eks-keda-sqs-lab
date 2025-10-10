@@ -29,5 +29,5 @@ spec:
       serviceAccount:
         create: true
         annotations:
-          eks.amazonaws.com/role-arn: SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN
+          eks.amazonaws.com/role-arn: SA_CLUSTER_AUTOSCALER_POD_IDENTITY_ARN
     replicaCount: 2

@@ -21,8 +21,6 @@ output "ecr_sqs_producer_repo_url" {
   value = module.ecr_sqs_producer.repository_url
 }
 
-
-
 # Output EKS Service Account for AWS Load Balancer Controller
 # output "eks_sa_alb_iam_role_arn" {
 #   value = module.load_balancer_controller_irsa_role.arn

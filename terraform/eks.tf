@@ -17,8 +17,8 @@ module "eks" {
     vpc-cni = {
       most_recent                 = true
       resolve_conflicts_on_update = "OVERWRITE"
-      # service_account_role_arn    = module.vpc_cni_ipv4_eks_pod_identity.iam_role_arn
-      # before_compute              = true
+      service_account_role_arn    = module.vpc_cni_ipv4_eks_pod_identity.iam_role_arn
+      before_compute              = true
     }
     coredns = {
       most_recent                 = true

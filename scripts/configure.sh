@@ -23,11 +23,16 @@ EKS_CLUSTER_NAME=$(terraform output -raw eks_cluster_name)
 ECR_SQS_CONSUMER_REPO=$(terraform output -raw ecr_sqs_consumer_repo_url)
 ECR_SQS_PRODUCER_REPO=$(terraform output -raw ecr_sqs_producer_repo_url)
 EXTERNAL_DNS_DOMAIN_FILTER=$(terraform output -raw domain_filter)
-SA_ALB_IAM_ROLE_ARN=$(terraform output -raw eks_sa_alb_iam_role_arn)
-SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN=$(terraform output -raw eks_sa_cluster_autoscaler_iam_role_arn)
-SA_EXTERNAL_DNS_IAM_ROLE_ARN=$(terraform output -raw eks_sa_external_dns_iam_role_arn)
-SA_SQS_KEDA_IAM_ROLE_ARN=$(terraform output -raw eks_sa_sqs_keda_iam_role_arn)
-SA_SQS_APP_IAM_ROLE_ARN=$(terraform output -raw eks_sa_sqs_app_iam_role_arn)
+# SA_ALB_IAM_ROLE_ARN=$(terraform output -raw eks_sa_alb_iam_role_arn)
+# SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN=$(terraform output -raw eks_sa_cluster_autoscaler_iam_role_arn)
+# SA_EXTERNAL_DNS_IAM_ROLE_ARN=$(terraform output -raw eks_sa_external_dns_iam_role_arn)
+# SA_SQS_KEDA_IAM_ROLE_ARN=$(terraform output -raw eks_sa_sqs_keda_iam_role_arn)
+# SA_SQS_APP_IAM_ROLE_ARN=$(terraform output -raw eks_sa_sqs_app_iam_role_arn)
+SA_ALB_POD_IDENTITY_ARN=$(terraform output -raw eks_sa_alb_iam_role_arn)
+SA_CLUSTER_AUTOSCALER_POD_IDENTITY_ARN=$(terraform output -raw eks_sa_cluster_autoscaler_eks_pod_identity_arn)
+SA_EXTERNAL_DNS_POD_IDENTITY_ARN=$(terraform output -raw eks_sa_external_dns_eks_pod_identity_arn)
+SA_SQS_KEDA_POD_IDENTITY_ARN=$(terraform output -raw eks_sa_sqs_keda_eks_pod_identity_arn)
+SA_SQS_APP_POD_IDENTITY_ARN=$(terraform output -raw eks_sa_sqs_app_eks_pod_identity_arn)
 SA_SQS_APP_NAME=$(terraform output -raw sa_sqs_app_name)
 SQS_APP_DOMAIN_NAME=$(terraform output -raw sqs_app_domain_name)
 AWS_ACM_SQS_APP_ARN=$(terraform output -raw sqs_app_acm_certificate_arn)
@@ -50,7 +55,7 @@ replace_in_file 's|ECR_SQS_PRODUCER_REPO|'"$ECR_SQS_PRODUCER_REPO"'|g' ./k8s/app
 replace_in_file 's|SA_SQS_APP_NAME|'"$SA_SQS_APP_NAME"'|g' ./k8s/apps/sqs-app/release.yaml
 replace_in_file 's|SQS_APP_DOMAIN_NAME|'"$SQS_APP_DOMAIN_NAME"'|g' ./k8s/apps/sqs-app/release.yaml
 replace_in_file 's|SQS_QUEUE_NAME|'"$SQS_QUEUE_NAME"'|g' ./k8s/apps/sqs-app/release.yaml
-replace_in_file 's|SA_SQS_APP_IAM_ROLE_ARN|'"$SA_SQS_APP_IAM_ROLE_ARN"'|g' ./k8s/apps/sqs-app/release.yaml
+replace_in_file 's|SA_SQS_APP_POD_IDENTITY_ARN|'"$SA_SQS_APP_POD_IDENTITY_ARN"'|g' ./k8s/apps/sqs-app/release.yaml
 
 cp -f ./k8s/templates/apps/sqs-app/repository.yaml ./k8s/apps/sqs-app/repository.yaml
 replace_in_file 's|SQS_APP_GITHUB_URL|'"$SQS_APP_GITHUB_URL"'|g' ./k8s/apps/sqs-app/repository.yaml
@@ -59,24 +64,24 @@ replace_in_file 's|SQS_APP_GITHUB_URL|'"$SQS_APP_GITHUB_URL"'|g' ./k8s/apps/sqs-
 cp -f ./k8s/templates/infrastructure/controllers/aws-load-balancer-controller/release.yaml ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
 replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
 replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
-replace_in_file 's|SA_ALB_IAM_ROLE_ARN|'"$SA_ALB_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
+replace_in_file 's|SA_ALB_POD_IDENTITY_ARN|'"$SA_ALB_POD_IDENTITY_ARN"'|g' ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
 
 # Configure Cluster Autoscaler
 cp -f ./k8s/templates/infrastructure/controllers/cluster-autoscaler/release.yaml ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
 replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
 replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
-replace_in_file 's|SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN|'"$SA_CLUSTER_AUTOSCALER_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
+replace_in_file 's|SA_CLUSTER_AUTOSCALER_POD_IDENTITY_ARN|'"$SA_CLUSTER_AUTOSCALER_POD_IDENTITY_ARN"'|g' ./k8s/infrastructure/controllers/cluster-autoscaler/release.yaml
 
 # Configure External DNS
 cp -f ./k8s/templates/infrastructure/controllers/external-dns/release.yaml ./k8s/infrastructure/controllers/external-dns/release.yaml
 replace_in_file 's|AWS_REGION|'"$AWS_REGION"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
 replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
 replace_in_file 's|EXTERNAL_DNS_DOMAIN_FILTER|'"$EXTERNAL_DNS_DOMAIN_FILTER"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
-replace_in_file 's|SA_EXTERNAL_DNS_IAM_ROLE_ARN|'"$SA_EXTERNAL_DNS_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
+replace_in_file 's|SA_EXTERNAL_DNS_POD_IDENTITY_ARN|'"$SA_EXTERNAL_DNS_POD_IDENTITY_ARN"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
 
 # Configure Keda
 cp -f ./k8s/templates/infrastructure/controllers/keda/release.yaml ./k8s/infrastructure/controllers/keda/release.yaml
-replace_in_file 's|SA_SQS_KEDA_IAM_ROLE_ARN|'"$SA_SQS_KEDA_IAM_ROLE_ARN"'|g' ./k8s/infrastructure/controllers/keda/release.yaml
+replace_in_file 's|SA_SQS_KEDA_POD_IDENTITY_ARN|'"$SA_SQS_KEDA_POD_IDENTITY_ARN"'|g' ./k8s/infrastructure/controllers/keda/release.yaml
 
 echo "Pushing changes to Git repository..."
 echo ""
