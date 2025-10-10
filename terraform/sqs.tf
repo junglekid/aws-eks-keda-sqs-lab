@@ -1,5 +1,6 @@
 module "sqs" {
-  source = "terraform-aws-modules/sqs/aws"
+  source  = "terraform-aws-modules/sqs/aws"
+  version = "~> 5.0"
 
   name = "${local.sqs_name}-queue"
   # dlq_name = "${local.sqs_name}-dead-letter-queue"
@@ -11,50 +12,83 @@ module "sqs" {
   }
 }
 
-resource "aws_iam_policy" "sqs" {
-  name        = "${local.sqs_name}-policy"
-  description = "Policy for EKS sqs_app to access SQS Queue"
+# resource "aws_iam_policy" "sqs" {
+#   name        = "${local.sqs_name}-policy"
+#   description = "Policy for EKS sqs_app to access SQS Queue"
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid = "SQS"
-        Action = [
-          "sqs:DeleteMessage",
-          "sqs:SendMessage",
-          "sqs:GetQueueAttributes",
-          "sqs:GetQueueUrl",
-          "sqs:ReceiveMessage"
-        ]
-        Effect = "Allow",
-        Resource = [
-          module.sqs.queue_arn,
-          module.sqs.dead_letter_queue_arn
-        ],
-      },
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Sid = "SQS"
+#         Action = [
+#           "sqs:DeleteMessage",
+#           "sqs:SendMessage",
+#           "sqs:GetQueueAttributes",
+#           "sqs:GetQueueUrl",
+#           "sqs:ReceiveMessage"
+#         ]
+#         Effect = "Allow",
+#         Resource = [
+#           module.sqs.queue_arn,
+#           module.sqs.dead_letter_queue_arn
+#         ],
+#       },
+#     ]
+#   })
+# }
+
+# IAM policy document for SQS access
+data "aws_iam_policy_document" "sqs_access" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:SendMessage",
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:GetQueueUrl"
     ]
-  })
+    resources = [
+      module.sqs.queue_arn,
+      module.sqs.dead_letter_queue_arn
+    ]
+  }
 }
 
-resource "aws_iam_policy" "sqs-keda" {
-  name        = "${local.sqs_name}-keda-policy"
-  description = "Policy for EKS sqs_app to access SQS Queue"
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid = "SQS"
-        Action = [
-          "sqs:GetQueueAttributes"
-        ]
-        Effect = "Allow",
-        Resource = [
-          module.sqs.queue_arn,
-          module.sqs.dead_letter_queue_arn
-        ],
-      },
+data "aws_iam_policy_document" "sqs_keda_access" {
+  statement {
+    effect = "Allow"
+    sid    = "SQS"
+    actions = [
+      "sqs:GetQueueAttributes"
     ]
-  })
+    resources = [
+      module.sqs.queue_arn,
+      module.sqs.dead_letter_queue_arn
+    ]
+  }
 }
+
+
+# resource "aws_iam_policy" "sqs-keda" {
+#   name        = "${local.sqs_name}-keda-policy"
+#   description = "Policy for EKS sqs_app to access SQS Queue"
+
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Sid = "SQS"
+#         Action = [
+#           "sqs:GetQueueAttributes"
+#         ]
+#         Effect = "Allow",
+#         Resource = [
+#           module.sqs.queue_arn,
+#           module.sqs.dead_letter_queue_arn
+#         ],
+#       },
+#     ]
+#   })
+# }

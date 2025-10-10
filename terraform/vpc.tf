@@ -1,10 +1,10 @@
 # Create AWS VPC and Subnets
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0.0"
+  version = "~> 6.0"
 
-  private_subnets     = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
-  public_subnets      = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
+  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
+  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
 
   name                 = local.vpc_name
   cidr                 = local.vpc_cidr

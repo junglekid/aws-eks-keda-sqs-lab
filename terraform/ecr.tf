@@ -1,7 +1,7 @@
 # Create AWS ECR
 module "ecr_sqs_consumer" {
   source  = "terraform-aws-modules/ecr/aws"
-  version = "~> 1.6.0"
+  version = "~> 3.1.0"
 
   repository_name = "${local.ecr_sqs_repo_name}-consumer"
 
@@ -42,7 +42,7 @@ module "ecr_sqs_consumer" {
 
 module "ecr_sqs_producer" {
   source  = "terraform-aws-modules/ecr/aws"
-  version = "~> 1.6.0"
+  version = "~> 3.1.0"
 
   repository_name = "${local.ecr_sqs_repo_name}-producer"
 
