@@ -28,5 +28,5 @@ spec:
   values:
     serviceAccount:
       create: true
-      annotations:
-        eks.amazonaws.com/role-arn: arn:aws:iam::704855531002:role/eks-keda-sqs-lab-sqs-keda-20251010205622362100000001
+      # annotations:
+      #   eks.amazonaws.com/role-arn: arn:aws:iam::704855531002:role/eks-keda-sqs-lab-sqs-keda-20251010205622362100000001

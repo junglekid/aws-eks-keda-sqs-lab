@@ -18,7 +18,7 @@ EXPOSE 8080
 
 USER sqs_producer
 
-ENV PATH $PATH:/home/$USER/.local/bin
+ENV PATH=$PATH:/home/$USER/.local/bin
 
 RUN pip install --no-cache-dir -r requirements.txt
 

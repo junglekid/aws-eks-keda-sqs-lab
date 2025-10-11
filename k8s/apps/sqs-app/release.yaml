@@ -49,5 +49,5 @@ spec:
     serviceAccount:
       enabled: true
       name: sa-aws-sqs-app
-      annotations:
-        eks.amazonaws.com/role-arn: SA_SQS_KEDA_POD_IDENTITY_ARN
+      # annotations:
+      #   eks.amazonaws.com/role-arn: SA_SQS_KEDA_POD_IDENTITY_ARN
