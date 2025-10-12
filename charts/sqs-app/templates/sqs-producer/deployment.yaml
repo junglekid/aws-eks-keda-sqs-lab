@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.sqsProducer.deployment.name | quote }}
+  labels:
+    name: {{ .Values.sqsProducer.deployment.name | quote }}
+    app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
+    {{- include "sqs-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.sqsProducer.deployment.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      name: {{ .Values.sqsProducer.deployment.name | quote }}
+      app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.sqsProducer.deployment.name | quote }}
+        app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
+        {{- include "sqs-app.labels" . | nindent 4 }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+      - name: {{ .Values.sqsProducer.deployment.name | quote }}
+        image: {{ .Values.sqsProducer.deployment.container.image.repository }}:{{ .Values.sqsProducer.deployment.container.image.tag }}
+        imagePullPolicy: {{ .Values.sqsProducer.deployment.container.imagePullPolicy }}
+        env:
+        - name: SQS_QUEUE_NAME
+          value: {{ .Values.sqsProducer.deployment.container.sqsQueueName | quote }}
+        ports:
+        - containerPort: {{ .Values.sqsProducer.deployment.container.containerPort }}
+          protocol: TCP
+        resources:
+        {{- toYaml .Values.sqsProducer.deployment.container.resources | nindent 12 }}

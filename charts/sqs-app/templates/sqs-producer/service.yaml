@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.sqsProducer.service.name | quote }}
+  labels:
+    name: {{ .Values.sqsProducer.service.name | quote }}
+    app.kubernetes.io/name: {{ .Values.sqsProducer.service.name | quote }}
+    {{- include "sqs-app.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.sqsProducer.service.type }}
+  selector:
+    name: {{ .Values.sqsProducer.deployment.name | quote }}
+    app.kubernetes.io/name: {{ .Values.sqsProducer.deployment.name | quote }}
+  ports:
+	  {{- .Values.sqsProducer.service.ports | toYaml | nindent 2 -}}
