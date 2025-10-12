@@ -357,8 +357,7 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
 
    ```bash
    flux delete source git -s sqs-app
-   flux delete kustomization -s apps-base
-   flux delete kustomization -s apps-sources
+   flux delete kustomization -s apps
    ```
 
 5. Verify Applications are removed
@@ -448,6 +447,5 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
    ![Terraform Destroy](./images/terraform_destroy.png)
 
 ## Conclusion
-
 
 In conclusion, this guide provided a comprehensive overview of utilizing Keda and Amazon EKS.
