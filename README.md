@@ -317,6 +317,7 @@ The AWS Application Load Balancer Controller and External DNS must be deployed f
 
 ## Applications managed by Flux
 
+
 Flux can manage applications in several ways, but the most common way is through the Helm Controller. Flux will manage two Applications using Helm charts to deploy to the Amazon EKS Cluster. The two Applications are the following.
 
 - SQS Consumer App
