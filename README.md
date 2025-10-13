@@ -307,9 +307,8 @@ For additional information on using Flux, please look at the following series I 
 Below are the Applications that Flux manages, the Kubernetes Addons will be deployed and configured by Flux first. The following Kubernetes Addons will be installed.
 
 - AWS Application Load Balancer Controller
-- Cluster Autoscaler
-- Capacitor - A general purpose UI for FluxCD
 - External DNS
+- Karpenter
 - Keda
 - Metrics Server
 
