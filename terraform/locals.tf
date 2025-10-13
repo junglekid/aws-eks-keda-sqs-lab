@@ -32,4 +32,7 @@ locals {
   public_base_domain_name = "dallin.brewsentry.com" # Update with your root domain
   route53_zone_id         = data.aws_route53_zone.public_domain.zone_id
   route53_zone_arn        = data.aws_route53_zone.public_domain.arn
+
+  # Retrieve Public IP Address
+  my_public_ip = chomp(data.http.my_public_ip.response_body)
 }

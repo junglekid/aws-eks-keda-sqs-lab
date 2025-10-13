@@ -7,3 +7,8 @@ data "aws_route53_zone" "public_domain" {
   name         = local.public_base_domain_name
   private_zone = false
 }
+
+# Get your current public IP address
+data "http" "my_public_ip" {
+  url = "https://ipv4.icanhazip.com"
+}

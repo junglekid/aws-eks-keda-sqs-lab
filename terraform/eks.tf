@@ -69,8 +69,9 @@ module "eks" {
     "karpenter.sh/discovery" = local.eks_cluster_name
   }
 
-  vpc_id     = module.vpc.vpc_id
-  subnet_ids = module.vpc.private_subnets
+  vpc_id                       = module.vpc.vpc_id
+  subnet_ids                   = module.vpc.private_subnets
+  endpoint_public_access_cidrs = ["${local.my_public_ip}/32"]
 }
 
 module "karpenter" {
