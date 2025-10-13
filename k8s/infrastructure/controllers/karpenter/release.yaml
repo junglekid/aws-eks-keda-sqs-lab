@@ -3,7 +3,7 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: karpenter
-  namespace: flux-system
+  namespace: karpenter
 spec:
   releaseName: karpenter
   targetNamespace: kube-system
@@ -13,7 +13,7 @@ spec:
       chart: karpenter
       reconcileStrategy: ChartVersion
       sourceRef:
-        kind: HelmRepository
+        kind: OCIRepository
         name: karpenter
         namespace: flux-system
   install:
