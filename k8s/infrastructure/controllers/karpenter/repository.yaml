@@ -8,4 +8,4 @@ spec:
   interval: 24h
   url: oci://public.ecr.aws/karpenter/karpenter
   ref:
-    tag: latest
+    tag: v1.8
