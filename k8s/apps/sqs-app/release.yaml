@@ -39,7 +39,7 @@ spec:
         annotations:
           alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig":
             { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
-          alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-west-2:704855531002:certificate/433d4742-c564-4d87-bd6b-fcce506741c6"
+          alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-west-2:704855531002:certificate/71f7cf06-ea76-4e01-8b98-313d4f88c116"
           alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
           alb.ingress.kubernetes.io/scheme: internet-facing
           alb.ingress.kubernetes.io/ssl-redirect: "443"
