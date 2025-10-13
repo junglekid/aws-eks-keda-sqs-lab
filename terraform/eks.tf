@@ -4,7 +4,7 @@ module "eks" {
   version = "~> 21.3"
 
   name                                     = local.eks_cluster_name
-  kubernetes_version                       = "1.34"
+  kubernetes_version                       = local.eks_cluster_version
   endpoint_private_access                  = true
   endpoint_public_access                   = true
   enable_cluster_creator_admin_permissions = true

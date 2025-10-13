@@ -24,7 +24,7 @@ locals {
 
   # EKS Configuration
   eks_cluster_name                 = "eks-keda-sqs-lab"
-  eks_cluster_version              = "1.34" # To always use the latest set to "" instead of "1.xx"
+  eks_cluster_version              = "1.34"
   eks_iam_role_prefix              = "eks-keda-sqs-lab"
   eks_sqs_app_service_account_name = "sa-aws-sqs-app"
 

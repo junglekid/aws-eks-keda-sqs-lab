@@ -23,7 +23,5 @@ spec:
   values:
     serviceAccount:
       create: true
-      # annotations:
-      #   eks.amazonaws.com/role-arn: arn:aws:iam::704855531002:role/eks-keda-sqs-lab-aws-lbc-2025101020562303270000000a
     region: us-west-2
     clusterName: eks-keda-sqs-lab

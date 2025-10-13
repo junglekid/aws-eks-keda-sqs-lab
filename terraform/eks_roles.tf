@@ -66,10 +66,6 @@ module "sqs_eks_pod_identity" {
     data.aws_iam_policy_document.sqs_access.json
   ]
 
-  # additional_policy_arns = {
-  #   sqs_access = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${local.sqs_name}-policy"
-  # }
-
   associations = {
     sqs = {
       cluster_name    = module.eks.cluster_name
@@ -90,10 +86,6 @@ module "sqs_keda_eks_pod_identity" {
   source_policy_documents = [
     data.aws_iam_policy_document.sqs_keda_access.json
   ]
-
-  # additional_policy_arns = {
-  #   sqs_keda_access = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${local.sqs_name}-keda-policy"
-  # }
 
   associations = {
     sqs = {
