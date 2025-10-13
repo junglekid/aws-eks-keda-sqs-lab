@@ -17,6 +17,7 @@ spec:
         name: karpenter
         namespace: flux-system
   install:
+    createNamespace: true
     crds: CreateReplace
   upgrade:
     crds: CreateReplace
