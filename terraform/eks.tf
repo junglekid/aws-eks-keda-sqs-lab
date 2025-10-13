@@ -57,6 +57,11 @@ module "eks" {
         # Used to ensure Karpenter runs on nodes that it does not manage
         "karpenter.sh/controller" = "true"
       }
+
+      tags = {
+        # Used to ensure Karpenter runs on nodes that it does not manage
+        "karpenter.sh/discovery" = local.eks_cluster_name
+      }
     }
   }
 
@@ -73,11 +78,12 @@ module "karpenter" {
   version = "~> 21.3"
 
   cluster_name = module.eks.cluster_name
+  namespace    = "karpenter"
 
-  # Attach additional IAM policies to the Karpenter node IAM role
-  node_iam_role_additional_policies = {
-    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-  }
+  create_node_iam_role            = false
+  create_pod_identity_association = true
+  node_iam_role_arn               = module.eks.eks_managed_node_groups["node_workers"].iam_role_arn
+  create_access_entry             = false
 }
 
 module "vpc_cni_ipv4_eks_pod_identity" {

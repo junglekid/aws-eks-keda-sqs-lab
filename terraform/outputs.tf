@@ -12,6 +12,10 @@ output "eks_cluster_endpoint" {
   value = module.eks.cluster_endpoint
 }
 
+output "eks_node_group_iam_role_arn" {
+  value = module.eks.eks_managed_node_groups["node_workers"].iam_role_arn
+}
+
 # Output ECR Repo
 output "ecr_sqs_consumer_repo_url" {
   value = module.ecr_sqs_consumer.repository_url
