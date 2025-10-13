@@ -52,11 +52,32 @@ module "eks" {
       update_config = {
         max_unavailable = 1
       }
+
+      labels = {
+        # Used to ensure Karpenter runs on nodes that it does not manage
+        "karpenter.sh/controller" = "true"
+      }
     }
+  }
+
+  node_security_group_tags = {
+    "karpenter.sh/discovery" = local.eks_cluster_name
   }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
+}
+
+module "karpenter" {
+  source  = "terraform-aws-modules/eks/aws//modules/karpenter"
+  version = "~> 21.3"
+
+  cluster_name = module.eks.cluster_name
+
+  # Attach additional IAM policies to the Karpenter node IAM role
+  node_iam_role_additional_policies = {
+    AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  }
 }
 
 module "vpc_cni_ipv4_eks_pod_identity" {

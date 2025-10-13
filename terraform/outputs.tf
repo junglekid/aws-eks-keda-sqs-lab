@@ -96,3 +96,7 @@ output "sqs_queue_name" {
 output "sqs_queue_url" {
   value = module.sqs.queue_url
 }
+
+output "interruption_queue" {
+  value = module.karpenter.queue_name
+}
