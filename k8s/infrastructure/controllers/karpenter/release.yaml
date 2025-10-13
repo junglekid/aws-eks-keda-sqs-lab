@@ -7,7 +7,7 @@ metadata:
 spec:
   releaseName: karpenter
   targetNamespace: karpenter
-  interval: 30m
+  interval: 10m
   chart:
     spec:
       chart: karpenter
