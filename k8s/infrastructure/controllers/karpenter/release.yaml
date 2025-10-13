@@ -13,7 +13,7 @@ spec:
       chart: karpenter
       reconcileStrategy: ChartVersion
       sourceRef:
-        kind: OCIRepository
+        kind: HelmRepository
         name: karpenter
         namespace: flux-system
   install:
