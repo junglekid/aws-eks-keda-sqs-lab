@@ -8,9 +8,9 @@ spec:
   releaseName: karpenter
   targetNamespace: karpenter
   interval: 30m
-  dependsOn:
-    - name: karpenter-crd
-      namespace: flux-system
+  # dependsOn:
+  #   - name: karpenter-crd
+  #     namespace: flux-system
   chart:
     spec:
       chart: karpenter
