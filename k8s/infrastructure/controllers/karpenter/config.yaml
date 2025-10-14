@@ -2,7 +2,7 @@
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
-  name: spot
+  name: default
   annotations:
     kubernetes.io/description: "NodePool for provisioning spot capacity"
 spec:
