@@ -15,6 +15,7 @@ spec:
   chart:
     spec:
       chart: karpenter-crd
+      version: 1.8.1
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
