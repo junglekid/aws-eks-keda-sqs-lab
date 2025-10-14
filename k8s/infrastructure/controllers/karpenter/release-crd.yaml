@@ -19,7 +19,7 @@ spec:
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
-        name: karpenter-crd
+        name: karpenter
         namespace: flux-system
   targetNamespace: karpenter
   install:
