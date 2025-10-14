@@ -21,6 +21,10 @@ spec:
         kind: HelmRepository
         name: karpenter
         namespace: flux-system
+  install:
+    crds: Skip
+  upgrade:
+    crds: Skip
   values:
     nodeSelector:
       karpenter.sh/controller: 'true'
