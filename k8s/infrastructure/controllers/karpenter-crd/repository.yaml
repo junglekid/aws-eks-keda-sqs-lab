@@ -7,4 +7,4 @@ metadata:
 spec:
   interval: 24h
   type: "oci"
-  url: oci://public.ecr.aws/karpenter-crd
+  url: oci://public.ecr.aws/karpenter
