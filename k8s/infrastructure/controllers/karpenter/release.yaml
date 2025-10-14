@@ -1,0 +1,39 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: karpenter
+  namespace: flux-system
+spec:
+  releaseName: karpenter
+  targetNamespace: karpenter
+  interval: 30m
+  dependsOn:
+    - name: karpenter-crd
+      namespace: flux-system
+  chart:
+    spec:
+      chart: karpenter
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: karpenter
+        namespace: flux-system
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
+  values:
+    nodeSelector:
+      karpenter.sh/controller: 'true'
+    settings:
+      clusterName: eks-keda-sqs-lab
+      interruptionQueue: Karpenter-eks-keda-sqs-lab
+    controller:
+      resources:
+        requests:
+          cpu: 1
+          memory: 1Gi
+        limits:
+          cpu: 1
+          memory: 1Gi
