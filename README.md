@@ -2,6 +2,11 @@
 
 ![Using KEDA to Scale AWS SQS with Amazon Elastic Kubernetes Service (EKS)](./images/aws_eks_keda_sqs.png)
 
+[![Terraform](https://img.shields.io/badge/Terraform-%5E1.10-blue)](https://developer.hashicorp.com/terraform)
+[![KEDA](https://img.shields.io/badge/KEDA-v2.x-green)](https://keda.sh/)
+[![AWS EKS](https://img.shields.io/badge/AWS-EKS-orange)](https://aws.amazon.com/eks/)
+[![FluxCD](https://img.shields.io/badge/FluxCD-GitOps-lightblue)](https://fluxcd.io/)
+
 ## Table of Contents
 
 1. [Introduction](#introduction)
@@ -347,7 +352,6 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
 
    ```bash
    flux delete helmrelease -s sqs-app
-   flux delete helmrelease -s sqs-producer
    ```
 
 3. Wait 1 to 5 minutes for Applications to be removed from Kubernetes
@@ -372,7 +376,6 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
 
    ```bash
    flux suspend kustomization infra-controllers
-   flux suspend kustomization capacitor
    ```
 
 2. Delete Kubernetes Addons managed by Flux
@@ -382,10 +385,10 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
      -o jsonpath='{"-n "}{.items[*].metadata.namespace}{" "}{.items[*].kind}{"/"}{.items[*].metadata.name}{"\n"}')
 
    flux delete helmrelease -s aws-load-balancer-controller
-   flux delete helmrelease -s cluster-autoscaler
    flux delete helmrelease -s external-dns
-   flux delete helmrelease -s metrics-server
+   flux delete helmrelease -s karpenter
    flux delete helmrelease -s keda
+   flux delete helmrelease -s metrics-server
    ```
 
 3. Wait 1 to 5 minutes for Kubernetes Addons to be removed from Kubernetes
@@ -393,24 +396,23 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
 4. Delete Application sources managed by Flux
 
    ```bash
-   flux delete source oci -s capacitor
-   flux delete source helm -s cluster-autoscaler
    flux delete source helm -s eks-charts
    flux delete source helm -s external-dns
+   flux delete source helm -s karpenter
    flux delete source helm -s keda
    flux delete source helm -s metrics-server
    flux delete kustomization -s infra-controllers
-   flux delete kustomization -s capacitor
    ```
 
 5. Verify Kubernetes Addons were removed successfully
 
    ```bash
-   kubectl -n flux-system get all -l app.kubernetes.io/instance=capacitor
+   kubectl -n karpenter get all
    kubectl -n kube-system get all -l app.kubernetes.io/name=external-dns
    kubectl -n kube-system get all -l app.kubernetes.io/name=aws-load-balancer-controller
    kubectl -n kube-system get all -l app.kubernetes.io/name=aws-cluster-autoscaler
    kubectl -n kube-system get all -l app.kubernetes.io/name=metrics-server
+   kubectl -n karpenter get all
    kubectl -n keda get all
    kubectl get ingressclasses -l app.kubernetes.io/name=aws-load-balancer-controller
    ```
@@ -448,3 +450,7 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
 ## Conclusion
 
 In conclusion, this guide provided a comprehensive overview of utilizing Keda and Amazon EKS.
+
+## 🗟️ License
+
+MIT License © 2025 [Dallin Rasmuson](https://www.linkedin.com/in/dallinrasmuson)

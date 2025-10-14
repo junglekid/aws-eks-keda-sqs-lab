@@ -7,7 +7,12 @@ metadata:
 spec:
   releaseName: karpenter
   targetNamespace: karpenter
-  interval: 10m
+  interval: 30m
+  dependsOn:
+    - name: aws-load-balancer-controller
+      namespace: flux-system
+    - name: metrics-server
+      namespace: flux-system
   chart:
     spec:
       chart: karpenter
