@@ -375,6 +375,7 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
 1. Suspend Kubernetes Addons managed by Flux
 
    ```bash
+   flux suspend kustomization infra-configs
    flux suspend kustomization infra-controllers
    ```
 
@@ -384,11 +385,13 @@ kubectl scale deployment -n sqs-app sqs-producer --replicas 1
    kubectl delete $(kubectl get scaledobjects.keda.sh,scaledjobs.keda.sh -A \
      -o jsonpath='{"-n "}{.items[*].metadata.namespace}{" "}{.items[*].kind}{"/"}{.items[*].metadata.name}{"\n"}')
 
+   flux delete kustomization infra-configs
    flux delete helmrelease -s aws-load-balancer-controller
    flux delete helmrelease -s external-dns
    flux delete helmrelease -s karpenter
    flux delete helmrelease -s keda
    flux delete helmrelease -s metrics-server
+   kubectl patch crd ec2nodeclasses.karpenter.k8s.aws -p '{"metadata":{"finalizers":[]}}' --type=merge
    ```
 
 3. Wait 1 to 5 minutes for Kubernetes Addons to be removed from Kubernetes

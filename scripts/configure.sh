@@ -64,9 +64,9 @@ replace_in_file 's|EXTERNAL_DNS_DOMAIN_FILTER|'"$EXTERNAL_DNS_DOMAIN_FILTER"'|g'
 replace_in_file 's|SA_EXTERNAL_DNS_POD_IDENTITY_ARN|'"$SA_EXTERNAL_DNS_POD_IDENTITY_ARN"'|g' ./k8s/infrastructure/controllers/external-dns/release.yaml
 
 # Configure Karpenter
-cp -f ./k8s/templates/infrastructure/controllers/karpenter/config.yaml ./k8s/infrastructure/controllers/karpenter/config.yaml
-replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/karpenter/config.yaml
-replace_in_file 's|EKS_NODE_GROUP_IAM_ROLE_NAME|'"$EKS_NODE_GROUP_IAM_ROLE_NAME"'|g' ./k8s/infrastructure/controllers/karpenter/config.yaml
+cp -f ./k8s/templates/infrastructure/configs/karpenter/config.yaml ./k8s/infrastructure/configs/karpenter/config.yaml
+replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/configs/karpenter/config.yaml
+replace_in_file 's|EKS_NODE_GROUP_IAM_ROLE_NAME|'"$EKS_NODE_GROUP_IAM_ROLE_NAME"'|g' ./k8s/infrastructure/configs/karpenter/config.yaml
 
 cp -f ./k8s/templates/infrastructure/controllers/karpenter/release.yaml ./k8s/infrastructure/controllers/karpenter/release.yaml
 replace_in_file 's|EKS_CLUSTER_NAME|'"$EKS_CLUSTER_NAME"'|g' ./k8s/infrastructure/controllers/karpenter/release.yaml
@@ -83,7 +83,7 @@ git add ./k8s/apps/sqs-app/repository.yaml
 # Add Infrastructure Controller files
 git add ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
 git add ./k8s/infrastructure/controllers/external-dns/release.yaml
-git add ./k8s/infrastructure/controllers/karpenter/config.yaml
+git add ./k8s/infrastructure/configs/karpenter/config.yaml
 git add ./k8s/infrastructure/controllers/karpenter/release.yaml
 
 git commit -m "Updating Apps"
