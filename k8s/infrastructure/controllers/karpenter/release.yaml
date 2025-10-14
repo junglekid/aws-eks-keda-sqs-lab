@@ -13,6 +13,8 @@ spec:
       namespace: flux-system
     - name: metrics-server
       namespace: flux-system
+    - name: karpenter-crd
+      namespace: flux-system
   chart:
     spec:
       chart: karpenter
@@ -22,9 +24,9 @@ spec:
         name: karpenter
         namespace: flux-system
   install:
-    crds: CreateReplace
+    crds: Skip
   upgrade:
-    crds: CreateReplace
+    crds: Skip
   values:
     nodeSelector:
       karpenter.sh/controller: 'true'
