@@ -8,6 +8,11 @@ spec:
   releaseName: external-dns
   targetNamespace: kube-system
   interval: 30m
+  dependsOn:
+    - name: aws-load-balancer-controller
+      namespace: flux-system
+    - name: metrics-server
+      namespace: flux-system
   chart:
     spec:
       chart: external-dns
