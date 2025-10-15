@@ -29,12 +29,17 @@ module "eks" {
       resolve_conflicts_on_update = "OVERWRITE"
       before_compute              = true
     }
+    metrics-server = {
+      most_recent                 = true
+      resolve_conflicts_on_update = "OVERWRITE"
+    }
   }
 
   eks_managed_node_groups = {
     node_workers = {
-      # Starting on 1.30, AL2023 is the default AMI type for EKS managed node groups
-      instance_types = ["m6a.large", "m6i.large"]
+      # Using Bottlerocket OS optimized for ARM64/Graviton instances
+      ami_type       = "BOTTLEROCKET_ARM_64"
+      instance_types = ["m8g.large", "m7g.large", "m6g.large"]
       capacity_type  = "SPOT"
       subnet_ids     = module.vpc.private_subnets
 
