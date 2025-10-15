@@ -72,6 +72,8 @@
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
+        let autoRefreshInterval = null;
+
         function refreshData() {
             $.getJSON('/get_pods', function(data) {
                 var list = document.getElementById('podList');
@@ -89,37 +91,109 @@
             $.getJSON('/get_message_count', function(data) {
                 $('#messageCount').text(data.message_count);
             });
+        }
 
-            $.getJSON('/get_sqs_queue_avg', function(data) {
-                $('#sqsQueueAvg').text(data.sqs_queue_avg);
+        function sendMessagesAsync(event) {
+            event.preventDefault();
+
+            const messageCount = $('#number').val();
+            const statusDiv = $('#statusMessage');
+            const submitBtn = $('#submitBtn');
+
+            // Validate input
+            if (!messageCount || messageCount <= 0) {
+                statusDiv.html('<span style="color: red;">❌ Please enter a valid number</span>');
+                return;
+            }
+
+            // Disable button and show loading
+            submitBtn.prop('disabled', true);
+            statusDiv.html('<span style="color: blue;">⏳ Sending messages...</span>');
+
+            // Send async request
+            $.ajax({
+                url: '/send_messages_async',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ number: parseInt(messageCount) }),
+                success: function(data) {
+                    statusDiv.html(
+                        `<span style="color: green;">✅ ${data.message}<br>` +
+                        `Pod: ${data.pod}</span>`
+                    );
+                    // Clear the input box
+                    $('#number').val('');
+                    // Start faster polling for 30 seconds
+                    startFastPolling();
+                    // Re-enable button after 2 seconds
+                    setTimeout(() => submitBtn.prop('disabled', false), 2000);
+                    // Auto-clear status message after 10 seconds
+                    setTimeout(() => statusDiv.fadeOut('slow', function() {
+                        $(this).html('').show();
+                    }), 10000);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.error : 'Unknown error';
+                    statusDiv.html(`<span style="color: red;">❌ Error: ${error}</span>`);
+                    submitBtn.prop('disabled', false);
+                }
             });
         }
 
-        // Refresh every 5 seconds
-        setInterval(refreshData, 5000);
-        // Initial load
-        $(document).ready(refreshData);
+        function startFastPolling() {
+            // Clear existing interval
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+
+            // Poll every 2 seconds for 30 seconds
+            let pollCount = 0;
+            autoRefreshInterval = setInterval(() => {
+                refreshData();
+                pollCount++;
+                if (pollCount >= 15) {  // 15 * 2s = 30s
+                    // Return to normal 5-second interval
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = setInterval(refreshData, 5000);
+                }
+            }, 2000);
+        }
+
+        // Refresh every 5 seconds by default
+        $(document).ready(function() {
+            // Clear status message on page load
+            $('#statusMessage').html('');
+
+            refreshData();  // Initial load
+            autoRefreshInterval = setInterval(refreshData, 5000);
+
+            // Attach async handler to form
+            $('#messageForm').on('submit', sendMessagesAsync);
+        });
     </script>
 </head>
 <body>
     <div class="sqs">
         <h2>Using Keda to Scale Amazon Elastic Kubernetes Service Pods based on AWS SQS Queue</h2>
-        <form method="POST" action="/">
+        <form method="POST" action="/" id="messageForm">
             <label for="number">Enter a number of messages to send to AWS SQS Queue:</label>
-            <input type="text" name="number" id="number">
-            <button type="submit">Submit</button>
+            <input type="text" name="number" id="number" placeholder="e.g., 100">
+            <button type="submit" id="submitBtn">Send Messages (Async)</button>
+            <div id="statusMessage" style="margin-top: 15px; font-size: 14px;"></div>
         </form>
     </div>
     <div class="container" id="refreshData">
         <h4>Approximate Number of Messages in AWS SQS Queue: <span id="messageCount">{{ message_count }}</span></h4>
-        <h4>HPA SQS Queue Average: <span id="sqsQueueAvg">{{ sqs_queue_avg }}</span></h4>
         <h4>Number of SQS Consumer Pods: <span id="podCount">{{ pod_count }}</span></h4>
         <h4>SQS Consumer Pod Names:</h4>
         <ul id="podList">
         </ul>
     </div>
     <footer>
-        <p>Page automatically refreshes every 5 seconds</p>
+        <p>Page automatically refreshes every 5 seconds (2 seconds after sending messages)</p>
+        <p style="font-size: 12px; color: #666;">
+            Messages are sent asynchronously in the background. Watch the queue depth increase!
+        </p>
     </footer>
 </body>
 </html>

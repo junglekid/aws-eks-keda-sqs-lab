@@ -1,19 +1,19 @@
-'''
+"""
 Flask App to show how to send messages to AWS SQS Queue
-'''
+"""
+
 import logging
 import os
-import uuid
 import sys
 import threading
+import uuid
+
 import boto3
 from botocore.exceptions import ClientError
-from kubernetes import client, config, dynamic
-from kubernetes.client import api_client
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, jsonify, render_template, request
+from kubernetes import client, config
 
-
-app = Flask(__name__, template_folder='template')
+app = Flask(__name__, template_folder="template")
 
 logger = logging.getLogger(__name__)
 sqs = boto3.resource("sqs")
@@ -25,15 +25,18 @@ def get_current_namespace():
     Function to get Kubernetes Namespace
     """
     try:
-        with open("/var/run/secrets/kubernetes.io/serviceaccount/namespace",
-                  "r", encoding="utf-8") as file:
+        with open(
+            "/var/run/secrets/kubernetes.io/serviceaccount/namespace",
+            "r",
+            encoding="utf-8",
+        ) as file:
             return file.read().strip()
     except IOError as e:
         print(f"Error reading namespace file: {e}")
         return None
 
 
-def get_pods_with_label(label_selector=''):
+def get_pods_with_label(label_selector=""):
     """
     Function to get all Kubernetes Pods with a specific label.
     """
@@ -41,31 +44,10 @@ def get_pods_with_label(label_selector=''):
 
     v1 = client.CoreV1Api()
     namespace = get_current_namespace()
-    pods = v1.list_namespaced_pod(namespace=namespace,
-                                  label_selector=label_selector)
+    pods = v1.list_namespaced_pod(namespace=namespace, label_selector=label_selector)
     pod_names = [pod.metadata.name for pod in pods.items]
 
     return pod_names, len(pod_names)
-
-
-def get_hpa_sqs_queue_avg():
-    """
-    Function to get all Kubernetes Pods with a specific label.
-    """
-    config.load_incluster_config()
-
-    k8s_client = dynamic.DynamicClient(api_client.ApiClient(configuration=config.load_incluster_config()))
-
-    api = k8s_client.resources.get(api_version="autoscaling/v2", kind="HorizontalPodAutoscaler")
-    namespace = get_current_namespace()
-    hpa = api.get(namespace=namespace)
-
-    if not hpa.items[0].status.currentMetrics:
-        sqs_queue_avg = 0
-    else:
-        sqs_queue_avg = hpa.items[0].status.currentMetrics[0].external.current.averageValue
-
-    return sqs_queue_avg
 
 
 def get_num_of_messages():
@@ -73,58 +55,64 @@ def get_num_of_messages():
     Get the approximate number of messages in AWS SQS Queue
     """
     # Assign SQS Queue Name
-    sqs_queue_name = os.getenv('SQS_QUEUE_NAME')
+    sqs_queue_name = os.getenv("SQS_QUEUE_NAME")
 
     # Get AWS SQS Queue
     sqs_queue = get_queue(sqs_queue_name)
 
     response = sqs_client.get_queue_attributes(
-        QueueUrl=sqs_queue.url,
-        AttributeNames=['ApproximateNumberOfMessages']
+        QueueUrl=sqs_queue.url, AttributeNames=["ApproximateNumberOfMessages"]
     )
 
-    message_count = response['Attributes']['ApproximateNumberOfMessages']
+    message_count = response["Attributes"]["ApproximateNumberOfMessages"]
 
-    print(f"The number of messages in the queue is: {message_count}")
+    print(f"The approximate number of messages in the queue is: {message_count}")
 
     return message_count
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 def home():
     """
     Flask Main App
     """
-    label_selector = 'app=sqs-consumer'
+    label_selector = "app=sqs-consumer"
     pod_names, pod_count = get_pods_with_label(label_selector)
     message_count = get_num_of_messages()
 
-    if request.method == 'GET':
-        return render_template('index.html', pod_count=pod_count,
-                               pod_names=pod_names,
-                               message_count=message_count)
+    if request.method == "GET":
+        return render_template(
+            "index.html",
+            pod_count=pod_count,
+            pod_names=pod_names,
+            message_count=message_count,
+        )
 
-    max_messages = int(request.form.get('number'))
+    max_messages = int(request.form.get("number"))
 
     if max_messages:
         sqs_demo(max_messages)
 
-    return render_template('index.html', pod_count=pod_count,
-                           pod_names=pod_names, message_count=message_count)
+    return render_template(
+        "index.html",
+        pod_count=pod_count,
+        pod_names=pod_names,
+        message_count=message_count,
+    )
 
 
-@app.route('/get_pods')
+@app.route("/get_pods")
 def get_pods():
     """
     Get SQS Consumer Pods
     """
-    label_selector = 'app=sqs-consumer'
+    label_selector = "app=sqs-consumer"
     pod_names, pod_count = get_pods_with_label(label_selector)
 
     return jsonify({"pod_names": pod_names, "pod_count": pod_count})
 
 
-@app.route('/get_message_count')
+@app.route("/get_message_count")
 def get_msgs():
     """
     Get the approximate number of messages in AWS SQS Queue
@@ -134,14 +122,43 @@ def get_msgs():
     return jsonify({"message_count": message_count})
 
 
-@app.route('/get_sqs_queue_avg')
-def sqs_queue_avg():
+@app.route("/send_messages_async", methods=["POST"])
+def send_messages_async():
     """
-    Get the approximate number of messages in AWS SQS Queue
+    Start sending messages in background (fire and forget).
+    Works perfectly with multiple pods - no shared state required.
     """
-    sqs_queue_avg = get_hpa_sqs_queue_avg()
+    try:
+        data = request.get_json()
+        max_messages = int(data.get("number", 0))
 
-    return jsonify({"sqs_queue_avg": sqs_queue_avg})
+        # Validate input
+        if max_messages <= 0 or max_messages > 100000:
+            return jsonify(
+                {"error": "Invalid number of messages (must be 1-100000)"}
+            ), 400
+
+        # Start background task
+        thread = threading.Thread(target=sqs_demo, args=(max_messages,), daemon=True)
+        thread.start()
+
+        pod_name = os.getenv("HOSTNAME", "unknown")
+        print(f"[{pod_name}] Started sending {max_messages} messages in background")
+
+        return jsonify(
+            {
+                "status": "started",
+                "message": f"Sending {max_messages} messages in background",
+                "max_messages": max_messages,
+                "pod": pod_name,
+            }
+        ), 202  # 202 Accepted
+
+    except ValueError:
+        return jsonify({"error": "Invalid number format"}), 400
+    except Exception as e:
+        print(f"Error starting task: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 def process_sqs_messages(sqs_queue, max_messages):
@@ -153,10 +170,7 @@ def process_sqs_messages(sqs_queue, max_messages):
     print(f"Sending messages in batches of {batch_size}.")
     while number < max_messages:
         messages = [
-            {
-                'body': f'Message {index + 1} uuid: {uuid.uuid4()}',
-                'attributes': {}
-            }
+            {"body": f"Message {index + 1} uuid: {uuid.uuid4()}", "attributes": {}}
             for index in range(number, min(number + batch_size, max_messages))
         ]
         number = number + batch_size
@@ -170,7 +184,7 @@ def sqs_demo(max_messages):
     SQS Demo Main Function
     """
     # Assign SQS Queue Name
-    sqs_queue_name = os.getenv('SQS_QUEUE_NAME')
+    sqs_queue_name = os.getenv("SQS_QUEUE_NAME")
 
     # Get AWS SQS Queue
     sqs_queue = get_queue(sqs_queue_name)
@@ -179,14 +193,13 @@ def sqs_demo(max_messages):
         print(f"Sending {max_messages} messages.")
         for i in range(max_messages):
             message = {
-                'body': f'Message {i + 1} uuid: {uuid.uuid4()}',
-                'attributes': {}
+                "body": f"Message {i + 1} uuid: {uuid.uuid4()}",
+                "attributes": {},
             }
             send_message(sqs_queue, message)
             print(message)
         print(f"Done. Sent {i + 1} messages.")
     elif max_messages <= 200:
-        print('Test')
         process_sqs_messages(sqs_queue, max_messages)
     elif max_messages <= 2000:
         messages_t1 = max_messages // 2
@@ -194,10 +207,12 @@ def sqs_demo(max_messages):
         total_messages = messages_t1 + messages_t2
 
         # creating threads
-        t1 = threading.Thread(target=process_sqs_messages,
-                              args=(sqs_queue, messages_t1))
-        t2 = threading.Thread(target=process_sqs_messages,
-                              args=(sqs_queue, messages_t2))
+        t1 = threading.Thread(
+            target=process_sqs_messages, args=(sqs_queue, messages_t1)
+        )
+        t2 = threading.Thread(
+            target=process_sqs_messages, args=(sqs_queue, messages_t2)
+        )
 
         # starting threads
         t1.start()
@@ -208,7 +223,7 @@ def sqs_demo(max_messages):
         t2.join()
 
         # process_sqs_messages(sqs_queue, max_messages)
-        print(f'Sent a total of {total_messages} messages.')
+        print(f"Sent a total of {total_messages} messages.")
         print("Done!")
     else:
         messages_t1 = max_messages // 4
@@ -218,14 +233,18 @@ def sqs_demo(max_messages):
         total_messages = messages_t1 + messages_t2 + messages_t3 + messages_t4
 
         # creating thread
-        t1 = threading.Thread(target=process_sqs_messages,
-                              args=(sqs_queue, messages_t1))
-        t2 = threading.Thread(target=process_sqs_messages,
-                              args=(sqs_queue, messages_t2))
-        t3 = threading.Thread(target=process_sqs_messages,
-                              args=(sqs_queue, messages_t3))
-        t4 = threading.Thread(target=process_sqs_messages,
-                              args=(sqs_queue, messages_t4))
+        t1 = threading.Thread(
+            target=process_sqs_messages, args=(sqs_queue, messages_t1)
+        )
+        t2 = threading.Thread(
+            target=process_sqs_messages, args=(sqs_queue, messages_t2)
+        )
+        t3 = threading.Thread(
+            target=process_sqs_messages, args=(sqs_queue, messages_t3)
+        )
+        t4 = threading.Thread(
+            target=process_sqs_messages, args=(sqs_queue, messages_t4)
+        )
 
         # starting threads
         t1.start()
@@ -239,7 +258,7 @@ def sqs_demo(max_messages):
         t3.join()
         t4.join()
 
-        print(f'Sent a total of {total_messages} messages.')
+        print(f"Sent a total of {total_messages} messages.")
         print("Done!")
 
 
@@ -266,8 +285,7 @@ def send_message(queue, message, message_attributes=None):
 
     try:
         response = queue.send_message(
-            MessageBody=message["body"],
-            MessageAttributes=message["attributes"]
+            MessageBody=message["body"], MessageAttributes=message["attributes"]
         )
     except ClientError as error:
         logger.exception("Send message failed: %s", message)
@@ -314,5 +332,5 @@ def send_messages(queue, messages):
         return response
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080, debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080, debug=True)

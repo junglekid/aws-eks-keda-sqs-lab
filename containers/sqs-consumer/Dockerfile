@@ -16,8 +16,6 @@ RUN apt-get update \
     && chown -R $USER:$GROUP /usr/src/app \
     && chmod +x ./entrypoint.sh
 
-EXPOSE 8080
-
 USER sqs_consumer
 
 ENV PATH=$PATH:/home/$USER/.local/bin
