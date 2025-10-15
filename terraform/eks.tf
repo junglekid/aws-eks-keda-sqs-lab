@@ -29,10 +29,6 @@ module "eks" {
       resolve_conflicts_on_update = "OVERWRITE"
       before_compute              = true
     }
-    metrics-server = {
-      most_recent                 = true
-      resolve_conflicts_on_update = "OVERWRITE"
-    }
   }
 
   eks_managed_node_groups = {

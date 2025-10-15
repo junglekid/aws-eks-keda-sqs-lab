@@ -11,27 +11,21 @@
 
 1. [Introduction](#introduction)
 2. [What is Kubernetes Event-driven Autoscaling (KEDA)?](#what-is-kubernetes-event-driven-autoscaling-keda)
-   1. [Benefits of using KEDA with Amazon EKS](#benefits-of-using-keda-with-amazon-eks)
 3. [Architecture Overview](#architecture-overview)
-4. [Prerequisites](#prerequisites)
-5. [Setup and Deploy Infrastructure](#setup-and-deploy-infrastructure)
-6. [Configure access to Amazon EKS Cluster](#configure-access-to-amazon-eks-cluster)
-7. [Create and Push SQS App Docker Images to Amazon ECR](#create-and-push-sqs-app-docker-images-to-amazon-ecr)
-   1. [Build the Docker Images](#build-the-docker-images)
-   2. [Push the Docker Images to Amazon ECR](#push-the-docker-images-to-amazon-ecr)
-8. [Configure and Install Flux](#configure-and-install-flux)
-9. [Managing Flux](#managing-flux)
-10. [Kubernetes Addons managed by Flux](#kubernetes-addons-managed-by-flux)
-11. [Applications managed by Flux](#applications-managed-by-flux)
-12. [Demo](#demo)
-13. [Clean Up](#clean-up)
-    1. [Clean up Applications managed by Flux from Kubernetes](#clean-up-applications-managed-by-flux-from-kubernetes)
-    2. [Clean up Kubernetes AddOns managed by Flux from Kubernetes](#clean-up-kubernetes-addons-managed-by-flux-from-kubernetes)
-    3. [Uninstall Flux from Kubernetes](#uninstall-flux-from-kubernetes)
-    4. [Clean up Terraform](#clean-up-terraform)
-14. [Conclusion](#conclusion)
-
-## Introduction
+4. [How This Demo Works](#how-this-demo-works)
+5. [Prerequisites](#prerequisites)
+6. [Setup and Deploy Infrastructure](#setup-and-deploy-infrastructure)
+7. [Configure Access to Amazon EKS Cluster](#configure-access-to-amazon-eks-cluster)
+8. [Create and Push SQS App Docker Images to Amazon ECR](#create-and-push-sqs-app-docker-images-to-amazon-ecr)
+9. [Configure and Install Flux](#configure-and-install-flux)
+10. [Managing Flux](#managing-flux)
+11. [Kubernetes Addons Managed by Flux](#kubernetes-addons-managed-by-flux)
+12. [Applications Managed by Flux](#applications-managed-by-flux)
+13. [Demo: See KEDA Autoscaling in Action](#demo-see-keda-autoscaling-in-action)
+14. [Troubleshooting](#troubleshooting)
+15. [Security Considerations](#security-considerations)
+16. [Clean Up](#clean-up)
+17. [Conclusion](#conclusion)
 
 ## Introduction
 
@@ -540,7 +534,7 @@ kubectl logs -n flux-system deploy/kustomize-controller
 kubectl logs -n flux-system deploy/helm-controller
 ```
 
-### Additional Resources
+### Flux Additional Resources
 
 For comprehensive Flux documentation and examples, see my three-part series:
 - [Using Flux with Amazon EKS - Part 1](https://www.linkedin.com/pulse/using-flux-gitops-tool-amazon-elastic-kubernetes-service-rasmuson)
@@ -548,331 +542,491 @@ For comprehensive Flux documentation and examples, see my three-part series:
 - [Using Flux with Amazon EKS - Part 3](https://www.linkedin.com/pulse/using-flux-gitops-tool-amazon-elastic-kubernetes-service-rasmuson-1f)
 
 
+## Kubernetes Addons Managed by Flux
 
+Flux automatically installs and manages the following Kubernetes addons. These are deployed before applications to ensure necessary infrastructure is in place.
 
+### AWS Load Balancer Controller
 
-Follow these steps to set up the environment.
+- **Purpose**: Provisions AWS Application Load Balancers for Kubernetes Ingress resources
+- **Namespace**: `kube-system`
+- **Why needed**: Exposes applications externally with native AWS load balancing
 
-1. Set variables in "locals.tf". Below are some of the variables that should be set.
+### External DNS
 
-   - aws_region
-   - aws_profile
-   - tags
-   - custom_domain_name
-   - public_base_domain_name
+- **Purpose**: Automatically creates Route 53 DNS records for Ingress and Service resources
+- **Namespace**: `kube-system`
+- **Why needed**: Makes applications accessible via human-readable domain names
 
-2. Update Terraform S3 Backend in provider.tf
+### Karpenter
 
-   - bucket
-   - key
-   - profile
-   - dynamodb_table
+- **Purpose**: Just-in-time node provisioning based on pod requirements
+- **Namespace**: `karpenter`
+- **Why needed**: Automatically scales EKS nodes to handle varying workloads efficiently
 
-3. Navigate to the Terraform directory
+### KEDA (Kubernetes Event-Driven Autoscaling)
 
-   ```bash
-   cd terraform
-   ```
+- **Purpose**: Scales applications based on external event sources like SQS queues
+- **Namespace**: `keda`
+- **Why needed**: Core component enabling event-driven autoscaling for this demo
 
-4. Initialize Terraform
+### Metrics Server
 
-   ```bash
-   terraform init
-   ```
+- **Purpose**: Provides resource utilization metrics for pods and nodes
+- **Namespace**: `kube-system`
+- **Why needed**: Enables kubectl top commands and resource-based autoscaling
 
-5. Validate the Terraform code
-
-   ```bash
-   terraform validate
-   ```
-
-6. Run, review, and save a Terraform plan
-
-   ```bash
-   terraform plan -out=plan.out
-   ```
-
-7. Apply the Terraform plan
-
-   ```bash
-   terraform apply plan.out
-   ```
-
-8. Review Terraform apply results
-
-   ![Terraform Apply](./images/terraform_apply.png)
-
-## Configure access to Amazon EKS Cluster
-
-Amazon EKS Cluster details can be extracted from terraform output or by accessing the AWS Console to get the name of the cluster. This following command can be used to update the kubeconfig in your local machine where you run kubectl commands to interact with your EKS Cluster. Navigate to the root of the directory of the GitHub repo and run the following commands:
-
-   ```bash
-   cd terraform
-
-   AWS_REGION=$(terraform output -raw aws_region)
-   EKS_CLUSTER_NAME=$(terraform output -raw eks_cluster_name)
-   aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME
-   ```
-
-Results of configuring kubeconfig.
-
-![Configure Amazon EKS Cluster](./images/kubeconfig.png)
-
-## Create and Push SQS App Docker Images to Amazon ECR
-
-### Build the Docker Images
-
-Set the variables needed to build and push your Docker image. Navigate to the root of the directory of the GitHub repo and run the following commands:
+**Verify addon installation**:
 
 ```bash
-cd terraform
-
-AWS_REGION=$(terraform output -raw aws_region)
-ECR_SQS_CONSUMER_REPO=$(terraform output -raw ecr_sqs_consumer_repo_url)
-ECR_SQS_PRODUCER_REPO=$(terraform output -raw ecr_sqs_producer_repo_url)
+# Check all addon pods are running
+kubectl get pods -n keda
+kubectl get pods -n karpenter
+kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+kubectl get pods -n kube-system -l app.kubernetes.io/name=external-dns
+kubectl get pods -n kube-system -l app.kubernetes.io/name=metrics-server
 ```
 
-To build the Docker image, run the following command:
+## Applications Managed by Flux
+
+Flux manages two applications deployed via Helm charts. These work together to demonstrate KEDA's autoscaling capabilities.
+
+### SQS Producer Application
+
+- **Purpose**: Continuously sends messages to the SQS queue at a configurable rate
+- **Namespace**: `sqs-app`
+- **Configuration**: Message rate, batch size, and queue name
+- **Deployment**: Single pod (does not scale)
+
+### SQS Consumer Application
+
+- **Purpose**: Processes messages from the SQS queue
+- **Namespace**: `sqs-app`
+- **Scaling**: Managed by KEDA based on queue depth
+- **Configuration**: Queue polling, message processing logic
+- **Scale range**: 0 to 30 pods (configurable)
+
+**View application status**:
 
 ```bash
-cd ..
-docker build --platform linux/arm64 --no-cache --pull -t ${ECR_SQS_CONSUMER_REPO}:latest ./containers/sqs-consumer
-docker build --platform linux/arm64 --no-cache --pull -t ${ECR_SQS_PRODUCER_REPO}:latest ./containers/sqs-producer
+# Check application pods
+kubectl get pods -n sqs-app
+
+# Check KEDA ScaledObject
+kubectl get scaledobjects -n sqs-app
+
+# Check HPA created by KEDA
+kubectl get hpa -n sqs-app
+
+# View application logs
+kubectl logs -n sqs-app -l app=sqs-consumer
+kubectl logs -n sqs-app -l app=sqs-producer
 ```
 
-### Push the Docker Images to Amazon ECR
+## Demo: See KEDA Autoscaling in Action
 
-To push the Docker image to Amazon ECR, authenticate to your private Amazon ECR registry. To do this, run the following command:
+This section demonstrates KEDA's autoscaling behavior by controlling message flow into the SQS queue and observing how the consumer pods scale in response.
+
+### Initial State Verification
+
+Before starting, verify your initial state:
 
 ```bash
-aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_SQS_CONSUMER_REPO
-aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_SQS_PRODUCER_REPO
+# Check current pod count
+kubectl get pods -n sqs-app
+
+# Check HPA status
+kubectl get hpa -n sqs-app
+
+# Check SQS queue depth
+aws sqs get-queue-attributes \
+  --queue-url $(terraform output -raw sqs_queue_url) \
+  --attribute-names ApproximateNumberOfMessages
 ```
 
-Once authenticated, run the following command to push your Docker image to the Amazon ECR repository:
+**Expected initial state**: 0 consumer pods (scaled to zero), 1 producer pod (paused or stopped)
+
+### Step 1: Start Message Production
+
+Scale up the producer to begin sending messages to SQS:
 
 ```bash
-docker push ${ECR_SQS_CONSUMER_REPO}:latest
-docker push ${ECR_SQS_PRODUCER_REPO}:latest
+# Start the SQS producer
+kubectl scale deployment sqs-producer -n sqs-app --replicas=1
+
+# Monitor producer logs to confirm messages are being sent
+kubectl logs -n sqs-app -l app=sqs-producer -f
 ```
 
-## Configure and Install Flux
+**What to observe**: Producer logs showing messages being sent to SQS queue.
 
-1. Configure Variables needed to install Flux
+### Step 2: Watch KEDA Trigger Scaling
 
-   ```bash
-   export GITHUB_TOKEN='<REPLACE_WITH_GITHHUB_TOKEN>'
-   export GITHUB_USER='<REPLACE_WITH_GITHUB_USER>'
-   export GITHUB_OWNER='<REPLACE_WITH_GITHUB_OWNER>'
-   export GITHUB_REPO_NAME='<REPLACE_WITH_GITHUB_REPO_NAME>'
-   ```
-
-2. Configure Flux Repository by running the "configure.sh" script. The "configure.sh" script updates the various applications with the necessary values to run correctly. Navigate to the root of the directory of the GitHub repo and run the following commands:
-
-   ```bash
-   cd scripts
-
-   ./configure.sh
-   cd ..
-   ```
-
-3. Results of running the "configure.sh" script.
-
-   ![Configure Flux](./images/flux_configure.png)
-
-4. Install Flux on the Amazon EKS Cluster
-
-   ```bash
-   flux bootstrap github \
-     --components-extra=image-reflector-controller,image-automation-controller \
-     --owner=$GITHUB_OWNER \
-     --repository=$GITHUB_REPO_NAME \
-     --private=false \
-     --path=clusters/eks-keda-sqs-lab \
-     --personal
-   ```
-
-5. Results of installing Flux on the Amazon EKS Cluster.
-
-   ![Install Flux](./images/flux_install.png)
-
-6. Wait 2 to 5 minutes for Flux to reconcile the Git repository we specified, During this time, Flux will install and configure all of the defined Kubernetes Addons and Applications.
-
-7. Run the following command to check if all of the Kubernetes Addons and Applications deployed successfully
-
-   ```bash
-   flux get all -A
-   ```
-
-## Managing Flux
-
-Managing Flux is handled by using the Flux CLI. Flux does not come with any Web or UI interface to manage Flux. Please click [here](https://fluxcd.io/flux/cmd/) if you would like more information on the Flux CLI.
-
-The following are some commands you can use to manage Flux.
-
-```bash
-flux get all
-flux get sources all|git|helm|chart
-flux get helmreleases
-flux get kustomizations
-flux logs
-flux suspend kustomization <kustomization_name>
-flux reconcile source git flux-system
-```
-
-For additional information on using Flux, please look at the following series I wrote about Flux.
-
-- [Using Flux, a GitOps Tool, with Amazon Elastic Kubernetes Service (EKS) - Part 1](https://www.linkedin.com/pulse/using-flux-gitops-tool-amazon-elastic-kubernetes-service-rasmuson)
-- [Using Flux, a GitOps Tool, with Amazon Elastic Kubernetes Service (EKS) - Part 2](https://www.linkedin.com/pulse/using-flux-gitops-tool-amazon-elastic-kubernetes-service-rasmuson-1c)
-- [Using Flux, a GitOps Tool, with Amazon Elastic Kubernetes Service (EKS) - Part 3](https://www.linkedin.com/pulse/using-flux-gitops-tool-amazon-elastic-kubernetes-service-rasmuson-1f)
-
-## Kubernetes Addons managed by Flux
-
-Below are the Applications that Flux manages, the Kubernetes Addons will be deployed and configured by Flux first. The following Kubernetes Addons will be installed.
-
-- AWS Application Load Balancer Controller
-- External DNS
-- Karpenter
-- Keda
-- Metrics Server
-
-The AWS Application Load Balancer Controller and External DNS must be deployed first because the Applications need to be accessible by a load balancer and have the DNS Name registered with Route 53.
-
-## Applications managed by Flux
-
-Flux can manage applications in several ways, but the most common way is through the Helm Controller. Flux will manage two Applications using Helm charts to deploy to the Amazon EKS Cluster. The two Applications are the following.
-
-- SQS Consumer App
-- SQS Producer App
-
-## Demo
-
-Work in Progress
+In a new terminal, monitor the scaling activity:
 
 ```bash
 kubectl get hpa -n sqs-app
 kubectl scale deployment -n sqs-app sqs-producer --replicas 0
 kubectl scale deployment -n sqs-app sqs-producer --replicas 1
+
+# Watch pods in real-time
+watch kubectl get pods -n sqs-app
+
+# In another terminal, watch HPA
+watch kubectl get hpa -n sqs-app
+```
+
+**What happens**:
+
+1. Messages accumulate in SQS queue
+2. KEDA polls the queue every 30 seconds
+3. When queue depth exceeds threshold (5 messages/pod), KEDA triggers scaling
+4. Consumer pods are created (1-2 pods initially)
+5. More pods are added as queue depth increases
+6. Pods start processing and removing messages from the queue
+
+**Timeline**:
+
+- **0-30s**: Messages accumulate in queue, no pods yet
+- **30-60s**: KEDA detects messages, triggers first pod creation
+- **1-3 min**: Pods scale up to handle queue depth
+- **5-10 min**: Steady state with consistent message processing
+
+### Step 3: Observe Scaling Metrics
+
+```bash
+# Check current replica count
+kubectl get hpa -n sqs-app -w
+
+# View KEDA scaler metrics
+kubectl describe scaledobject sqs-consumer -n sqs-app
+
+# Check SQS queue depth over time
+while true; do
+  echo "Queue depth: $(aws sqs get-queue-attributes \
+    --queue-url $(cd terraform && terraform output -raw sqs_queue_url) \
+    --attribute-names ApproximateNumberOfMessages \
+    --query 'Attributes.ApproximateNumberOfMessages' \
+    --output text)"
+  sleep 10
+done
+```
+
+**Expected output**:
+
+```bash
+NAME           REFERENCE              TARGETS    MINPODS   MAXPODS   REPLICAS
+sqs-consumer   Deployment/sqs-consumer   150/5      0         30        10
+```
+
+This shows 150 messages in queue, target of 5 per pod, resulting in 10 active replicas.
+
+### Step 4: Stop Message Production
+
+Stop sending messages and watch the scale-down behavior:
+
+```bash
+# Stop the producer
+kubectl scale deployment sqs-producer -n sqs-app --replicas=0
+
+# Continue watching pods
+watch kubectl get pods -n sqs-app
+```
+
+**What happens**:
+
+1. No new messages are added to the queue
+2. Consumer pods continue processing remaining messages
+3. Queue depth decreases as messages are processed
+4. KEDA gradually scales down the number of pods
+5. After cooldown period (5 minutes by default) with empty queue, pods scale to zero
+
+**Timeline**:
+
+- **0-5 min**: Pods process remaining messages, queue empties
+- **5-10 min**: Cooldown period, no new messages
+- **10+ min**: All consumer pods terminated (scale to zero)
+
+### Step 5: Verify Scale-to-Zero
+
+```bash
+# Confirm queue is empty
+aws sqs get-queue-attributes \
+  --queue-url $(cd terraform && terraform output -raw sqs_queue_url) \
+  --attribute-names ApproximateNumberOfMessages
+
+# Confirm no consumer pods running
+kubectl get pods -n sqs-app
+
+# Check HPA shows 0 replicas
+kubectl get hpa -n sqs-app
+```
+
+**Expected output**:
+
+- Queue: 0 messages
+- Consumer pods: None
+- HPA: 0/0 replicas
+
+### Step 6: Test Rapid Scale-Up
+
+Restart the producer with higher message rate to see rapid scaling:
+
+```bash
+# Scale producer back up
+kubectl scale deployment sqs-producer -n sqs-app --replicas=1
+
+# Watch for rapid pod creation
+watch kubectl get pods -n sqs-app
+```
+
+**What to observe**: Pods scale from 0 to multiple replicas within 1-2 minutes as messages accumulate.
+
+### Understanding KEDA Scaling Behavior
+
+**Scaling Formula**:
+
+```
+Desired Replicas = ceil(Queue Depth / Target Messages Per Pod)
+```
+
+**Example**:
+
+- Queue has 50 messages
+- Target is 5 messages per pod
+- KEDA creates: ceil(50/5) = 10 consumer pods
+
+**Scale-Up Characteristics**:
+
+- Triggered immediately when queue depth exceeds threshold
+- Aggressive scaling to handle backlog quickly
+- Limited by `maxReplicaCount` setting
+
+**Scale-Down Characteristics**:
+
+- Gradual scale-down as queue empties
+- Cooldown period prevents thrashing
+- Scale-to-zero only after sustained idle period
+
+### Optional: Advanced Monitoring with k9s
+
+If you have k9s installed, use it for better visualization:
+
+```bash
+# Launch k9s
+k9s
+
+# Navigate to:
+# - :pods and filter by namespace :sqs-app
+# - :hpa to see horizontal pod autoscaler
+# - :describe to view KEDA ScaledObject details
 ```
 
 ## Clean Up
 
-## Clean up Applications managed by Flux from Kubernetes
+**Important**: Follow these steps in order to avoid orphaned resources and potential costs.
 
-1. Suspend Applications managed by Flux
+### Step 1: Suspend Flux Reconciliation
 
-   ```bash
-   flux suspend source git flux-system
-   flux suspend source git sqs-app
-   flux suspend kustomization apps
-   ```
+Prevent Flux from recreating resources during cleanup:
 
-2. Delete Applications managed by Flux
+```bash
+# Suspend all Flux sources and Kustomizations
+flux suspend source git flux-system
+flux suspend source git sqs-app
+flux suspend kustomization infra-configs
+flux suspend kustomization infra-controllers
+flux suspend kustomization apps
+```
 
-   ```bash
-   flux delete helmrelease -s sqs-app
-   ```
+### Step 2: Remove Applications
 
-3. Wait 1 to 5 minutes for Applications to be removed from Kubernetes
+```bash
+# Delete application Helm releases
+flux delete helmrelease sqs-app --silent
 
-4. Delete Application sources managed by Flux
+# Delete Keda HPA Autoscaling
+kubectl delete -n sqs-app horizontalpodautoscalers.autoscaling keda-hpa-aws-sqs-queue-scaledobject
 
-   ```bash
-   flux delete source git -s sqs-app
-   flux delete kustomization -s apps
-   kubectl delete -n sqs-app horizontalpodautoscalers.autoscaling keda-hpa-aws-sqs-queue-scaledobject
-   ```
+# Wait for applications to terminate (1-5 minutes)
+echo "Waiting for application removal..."
+sleep 120
 
-5. Verify Applications are removed
+# Delete application sources
+flux delete source git sqs-app --silent
+flux delete kustomization apps --silent
 
-   ```bash
-   kubectl -n sqs-app get all
-   kubectl -n sqs-app get ingresses
-   ```
+# Verify applications removed
+kubectl get -n sqs-app all
+kubectl get -n sqs-app ingress
+```
 
-## Clean up Kubernetes Addons managed by Flux from Kubernetes
+**Expected result**: No resources in `sqs-app` namespace
 
-1. Suspend Kubernetes Addons managed by Flux
+### Step 3: Remove Kubernetes Addons
 
-   ```bash
-   flux suspend kustomization infra-configs
-   flux suspend kustomization infra-controllers
-   ```
+```bash
+# Delete any KEDA-managed resources first
+kubectl delete scaledobjects --all -A
+kubectl delete scaledjobs --all -A
 
-2. Delete Kubernetes Addons managed by Flux
+# Delete addon Helm releases
+flux delete helmrelease aws-load-balancer-controller --silent
+flux delete helmrelease external-dns --silent
+flux delete helmrelease karpenter --silent
+flux delete helmrelease keda --silent
+flux delete helmrelease metrics-server --silent
 
-   ```bash
-   kubectl delete $(kubectl get scaledobjects.keda.sh,scaledjobs.keda.sh -A \
-     -o jsonpath='{"-n "}{.items[*].metadata.namespace}{" "}{.items[*].kind}{"/"}{.items[*].metadata.name}{"\n"}')
+# Cleanup Keda CRDs
+kubectl patch crd ec2nodeclasses.karpenter.k8s.aws -p '{"metadata":{"finalizers":[]}}' --type=merge
+kubectl delete $(kubectl get scaledobjects.keda.sh,scaledjobs.keda.sh -A \
+   -o jsonpath='{"-n "}{.items[*].metadata.namespace}{" "}{.items[*].kind}{"/"}{.items[*].metadata.name}{"\n"}')
 
-   flux delete kustomization -s infra-configs
-   flux delete helmrelease -s aws-load-balancer-controller
-   flux delete helmrelease -s external-dns
-   flux delete helmrelease -s karpenter
-   flux delete helmrelease -s keda
-   flux delete helmrelease -s metrics-server
-   kubectl patch crd ec2nodeclasses.karpenter.k8s.aws -p '{"metadata":{"finalizers":[]}}' --type=merge
-   ```
+# Wait for addons to terminate (2-5 minutes)
+echo "Waiting for addon removal..."
+sleep 120
 
-3. Wait 1 to 5 minutes for Kubernetes Addons to be removed from Kubernetes
+# Delete addon sources
+flux delete kustomization infra-configs --silent
+flux delete source helm eks-charts --silent
+flux delete source helm external-dns --silent
+flux delete source helm karpenter --silent
+flux delete source helm keda --silent
+flux delete source helm metrics-server --silent
+flux delete kustomization infra-controllers --silent
+```
 
-4. Delete Application sources managed by Flux
+**Verify addon removal**:
 
-   ```bash
-   kubectl patch crd ec2nodeclasses.karpenter.k8s.aws -p '{"metadata":{"finalizers":[]}}' --type=merge
-   flux delete source helm -s eks-charts
-   flux delete source helm -s external-dns
-   flux delete source helm -s karpenter
-   flux delete source helm -s keda
-   flux delete source helm -s metrics-server
-   flux delete kustomization -s infra-controllers
-   ```
+```bash
+kubectl get -n kube-system all -l app.kubernetes.io/name=external-dns
+kubectl get -n kube-system all -l app.kubernetes.io/name=aws-load-balancer-controller
+kubectl get -n kube-system all -l app.kubernetes.io/name=aws-cluster-autoscaler
+kubectl get -n kube-system all -l app.kubernetes.io/name=metrics-server
+kubectl get -n karpenter all
+kubectl get -n keda all
+kubectl get ingressclasses -l app.kubernetes.io/name=aws-load-balancer-controller
+```
 
-5. Verify Kubernetes Addons were removed successfully
+**Expected result**: No addon pods running
 
-   ```bash
-   kubectl -n kube-system get all -l app.kubernetes.io/name=external-dns
-   kubectl -n kube-system get all -l app.kubernetes.io/name=aws-load-balancer-controller
-   kubectl -n kube-system get all -l app.kubernetes.io/name=aws-cluster-autoscaler
-   kubectl -n kube-system get all -l app.kubernetes.io/name=metrics-server
-   kubectl -n karpenter get all
-   kubectl -n keda get all
-   kubectl get ingressclasses -l app.kubernetes.io/name=aws-load-balancer-controller
-   ```
+### Step 4: Manual Resource Cleanup (If Needed)
 
-6. If any resources are not deleted, manually delete them.
+If any resources remain after addon removal:
 
-## Uninstall Flux from Kubernetes
+```bash
+# List remaining Ingresses and delete manually
+kubectl get ingress -A
+kubectl delete ingress <ingress-name> -n <namespace>
 
-1. Uninstall Flux
+# List remaining Services with LoadBalancer type
+kubectl get svc -A | grep LoadBalancer
+kubectl delete svc <service-name> -n <namespace>
 
-   ```bash
-   flux uninstall -s
-   ```
+# Check for remaining KEDA resources
+kubectl get scaledobjects -A
+kubectl get scaledjobs -A
+kubectl delete scaledobject <name> -n <namespace>
+```
 
-2. Verify Flux was removed successfully
+### Step 5: Uninstall Flux
 
-   ```bash
-   kubectl get all -n flux-system
-   ```
+```bash
+# Uninstall Flux from cluster
+flux uninstall --silent
 
-## Clean up Terraform
+# Verify Flux removed
+kubectl get -n flux-system all
+```
 
-1. Navigate to the root of the directory of the GitHub repo and run the following commands
+**Expected result**: `No resources found in flux-system namespace.`
 
-   ```bash
-   cd terraform
+### Step 6: Destroy Terraform Infrastructure
 
-   terraform destroy
-   ```
+```bash
+# Navigate to Terraform directory
+cd terraform
 
-2. Check Terraform destroy results
+# Destroy all AWS resources
+terraform destroy
 
-   ![Terraform Destroy](./images/terraform_destroy.png)
+# Confirm destruction when prompted
+# Type 'yes' to proceed
+```
+
+**Destruction timeline**: 15-20 minutes
+
+![Terraform Destroy](./images/terraform_destroy.png)
+
+**Resources destroyed**:
+
+- EKS cluster and node groups
+- VPC, subnets, NAT gateways
+- ECR repositories
+- SQS queue
+- IAM roles and policies
+- KMS keys
+- Route 53 records
+- ACM certificates
 
 ## Conclusion
 
-In conclusion, this guide provided a comprehensive overview of utilizing Keda and Amazon EKS.
+This guide demonstrated how to implement a production-ready, event-driven autoscaling solution using KEDA with Amazon EKS. You learned how to:
+
+- Deploy a complete EKS infrastructure using Terraform
+- Implement GitOps workflows with Flux for continuous deployment
+- Configure KEDA to scale applications based on AWS SQS queue depth
+- Achieve cost optimization through scale-to-zero capabilities
+- Manage Kubernetes addons and applications declaratively
+
+### Key Takeaways
+
+**Event-Driven Autoscaling**: KEDA extends Kubernetes autoscaling beyond CPU and memory metrics, enabling applications to scale based on real business events like message queue depth, database queries, or custom metrics.
+
+**Scale-to-Zero Economics**: By scaling to zero during idle periods, you pay only for compute resources when actively processing events, significantly reducing costs for sporadic or batch workloads.
+
+**GitOps Best Practices**: Flux provides automated, declarative infrastructure management, ensuring your cluster state always matches your Git repository and enabling easy rollbacks and auditing.
+
+**AWS Integration**: KEDA's native support for AWS services like SQS, combined with EKS's managed Kubernetes experience, creates a powerful platform for cloud-native applications.
+
+### Next Steps
+
+**Production Hardening**:
+
+- Implement comprehensive monitoring with Prometheus and Grafana
+- Set up alerting for scaling events and failures
+- Configure pod disruption budgets for high availability
+- Implement service mesh (Istio/Linkerd) for advanced traffic management
+
+**Scaling Optimizations**:
+
+- Fine-tune KEDA trigger thresholds based on your workload
+- Adjust cooldown periods to prevent scaling thrashing
+- Configure multiple KEDA scalers for complex event sources
+- Implement custom metrics for business-specific scaling triggers
+
+**Security Enhancements**:
+
+- Enable Pod Security Standards at cluster level
+- Implement network policies for zero-trust networking
+- Set up AWS GuardDuty for threat detection
+- Configure AWS Config for compliance monitoring
+
+**Advanced Features**:
+
+- Explore KEDA ScaledJobs for batch processing
+- Implement multi-queue processing with different scalers
+- Add circuit breakers for downstream service protection
+- Configure priority classes for critical workloads
+
+### Additional Resources
+
+- **KEDA Documentation**: [https://keda.sh/docs/](https://keda.sh/docs/)
+- **Flux Documentation**: [https://fluxcd.io/docs/](https://fluxcd.io/docs/)
+- **AWS EKS Best Practices**: [https://aws.github.io/aws-eks-best-practices/](https://aws.github.io/aws-eks-best-practices/)
+- **Karpenter Documentation**: [https://karpenter.sh/docs/](https://karpenter.sh/docs/)
+
+Thank you for following this guide. For questions, issues, or contributions, please visit the [GitHub repository](https://github.com/junglekid/aws-eks-keda-sqs-lab).
 
 ## 🗟️ License
 
