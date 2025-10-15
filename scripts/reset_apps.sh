@@ -13,7 +13,7 @@ cp -f ./k8s/templates/apps/sqs-app/repository.yaml ./k8s/apps/sqs-app/repository
 # AWS Load Balancer
 cp -f ./k8s/templates/infrastructure/controllers/aws-load-balancer-controller/release.yaml ./k8s/infrastructure/controllers/aws-load-balancer-controller/release.yaml
 
-# External DNA
+# External DNS
 cp -f ./k8s/templates/infrastructure/controllers/external-dns/release.yaml ./k8s/infrastructure/controllers/external-dns/release.yaml
 
 # Karpenter
