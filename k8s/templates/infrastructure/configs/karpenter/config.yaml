@@ -14,7 +14,7 @@ spec:
           values: ["spot"]
         - key: kubernetes.io/arch
           operator: In
-          values: ["amd64"]
+          values: ["arm64"]
         - key: kubernetes.io/os
           operator: In
           values: ["linux"]
@@ -23,7 +23,7 @@ spec:
           values: ["m"]
         - key: karpenter.k8s.aws/instance-family
           operator: In
-          values: ["m8a", "m8i", "m6a", "m6i"]
+          values: ["m8g", "m7g", "m6g"]
         - key: karpenter.k8s.aws/instance-generation
           operator: Gt
           values: ["2"]
@@ -46,7 +46,7 @@ kind: EC2NodeClass
 metadata:
   name: default
   annotations:
-    kubernetes.io/description: "General purpose EC2NodeClass for running Amazon Linux 2 nodes"
+    kubernetes.io/description: "General purpose EC2NodeClass for running Bottlerocket arm64 nodes"
 spec:
   role: EKS_NODE_GROUP_IAM_ROLE_NAME
   subnetSelectorTerms:
@@ -56,4 +56,4 @@ spec:
     - tags:
         karpenter.sh/discovery: EKS_CLUSTER_NAME
   amiSelectorTerms:
-    - alias: al2023@latest # Amazon Linux 2023
+    - alias: bottlerocket@latest # Amazon Linux 2023 ARM64

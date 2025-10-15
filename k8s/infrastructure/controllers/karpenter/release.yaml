@@ -8,6 +8,11 @@ spec:
   releaseName: karpenter
   targetNamespace: karpenter
   interval: 30m
+  dependsOn:
+    - name: aws-load-balancer-controller
+      namespace: flux-system
+    - name: metrics-server
+      namespace: flux-system
   chart:
     spec:
       chart: karpenter
@@ -24,8 +29,8 @@ spec:
     nodeSelector:
       karpenter.sh/controller: 'true'
     settings:
-      clusterName: eks-keda-sqs-lab
-      interruptionQueue: Karpenter-eks-keda-sqs-lab
+      clusterName: EKS_CLUSTER_NAME
+      interruptionQueue: KARPENTER_INTERRUPTION_QUEUE
     controller:
       resources:
         requests:
