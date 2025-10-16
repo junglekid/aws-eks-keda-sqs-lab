@@ -22,10 +22,8 @@
 11. [Kubernetes Addons Managed by Flux](#kubernetes-addons-managed-by-flux)
 12. [Applications Managed by Flux](#applications-managed-by-flux)
 13. [Demo: See KEDA Autoscaling in Action](#demo-see-keda-autoscaling-in-action)
-14. [Troubleshooting](#troubleshooting)
-15. [Security Considerations](#security-considerations)
-16. [Clean Up](#clean-up)
-17. [Conclusion](#conclusion)
+14. [Clean Up](#clean-up)
+15. [Conclusion](#conclusion)
 
 ## Introduction
 
@@ -627,6 +625,20 @@ kubectl logs -n sqs-app -l app=sqs-producer
 
 This section demonstrates KEDA's autoscaling behavior by controlling message flow into the SQS queue and observing how the consumer pods scale in response.
 
+### Optional: Advanced Monitoring with k9s
+
+If you have k9s installed, use it for better visualization:
+
+```bash
+# Launch k9s
+k9s
+
+# Navigate to:
+# - :pods and filter by namespace :sqs-app
+# - :hpa to see horizontal pod autoscaler
+# - :describe to view KEDA ScaledObject details
+```
+
 ### Initial State Verification
 
 Before starting, verify your initial state:
@@ -637,14 +649,25 @@ kubectl get pods -n sqs-app
 
 # Check HPA status
 kubectl get hpa -n sqs-app
-
-# Check SQS queue depth
-aws sqs get-queue-attributes \
-  --queue-url $(terraform output -raw sqs_queue_url) \
-  --attribute-names ApproximateNumberOfMessages
 ```
 
-**Expected initial state**: 0 consumer pods (scaled to zero), 1 producer pod (paused or stopped)
+**Terminal - Expected initial state**:
+
+HPA Before Scale Up
+
+![HPA Before Scale Up](./images/hpa_before_scale_up.png)
+
+**k9s - Expected initial state**:
+
+k9s Before Scale Up
+
+![k9s Before Scale Up](./images/k9s_keda_before_scale_up.png)
+
+**Web Browser - Expected initial state**:
+
+Web Browser Before Scale Up
+
+![Web Browser Before Scale Up](./images/browser_before_scale_up.png)
 
 ### Step 1: Start Message Production
 
@@ -660,9 +683,17 @@ kubectl logs -n sqs-app -l app=sqs-producer -f
 
 **What to observe**: Producer logs showing messages being sent to SQS queue.
 
+**Terminal - Expected output**:
+
+Messages being sent to SQS queue
+
+![Log Send Messages](./images/logs_send_messages.png)
+
 ### Step 2: Watch KEDA Trigger Scaling
 
 In a new terminal, monitor the scaling activity:
+
+**NOTE:** `watch` is not installed by default on macOS. If `homebrew` is install, `watch` can be installed by running `brew install watch`.
 
 ```bash
 kubectl get hpa -n sqs-app
@@ -676,62 +707,62 @@ watch kubectl get pods -n sqs-app
 watch kubectl get hpa -n sqs-app
 ```
 
+**Terminal - Expected output**:
+
+HPA Scaling Up 1 Pod
+
+![HPA Scale Up 1 Pod](./images/hpa_scale_up_1_pod.png)
+
+**k9s - Expected output**:
+
+k9s Scaling Up 1 Pod
+
+![k9s Scale Up 1 Pod](./images/k9s_keda_scale_up_1_pod.png)
+
+**Web Browser - Expected output**:
+
+Web Browser Scaling Up 1 Pod
+
+![Web Browser Scale Up 1 Pod](./images/browser_keda_scale_up_1_pod.png)
+
 **What happens**:
 
 1. Messages accumulate in SQS queue
 2. KEDA polls the queue every 30 seconds
-3. When queue depth exceeds threshold (5 messages/pod), KEDA triggers scaling
+3. When queue depth exceeds threshold (10 messages/pod), KEDA triggers scaling
 4. Consumer pods are created (1-2 pods initially)
 5. More pods are added as queue depth increases
 6. Pods start processing and removing messages from the queue
 
-**Timeline**:
-
-- **0-30s**: Messages accumulate in queue, no pods yet
-- **30-60s**: KEDA detects messages, triggers first pod creation
-- **1-3 min**: Pods scale up to handle queue depth
-- **5-10 min**: Steady state with consistent message processing
-
-### Step 3: Observe Scaling Metrics
+### Step 3: Observe Scaling Up and Down
 
 ```bash
 # Check current replica count
 kubectl get hpa -n sqs-app -w
 
 # View KEDA scaler metrics
-kubectl describe scaledobject sqs-consumer -n sqs-app
-
-# Check SQS queue depth over time
-while true; do
-  echo "Queue depth: $(aws sqs get-queue-attributes \
-    --queue-url $(cd terraform && terraform output -raw sqs_queue_url) \
-    --attribute-names ApproximateNumberOfMessages \
-    --query 'Attributes.ApproximateNumberOfMessages' \
-    --output text)"
-  sleep 10
-done
+kubectl get scaledobjects -n sqs-app aws-sqs-queue-scaledobject -w
 ```
 
-**Expected output**:
+**Terminal - Expected output**:
 
-```bash
-NAME           REFERENCE              TARGETS    MINPODS   MAXPODS   REPLICAS
-sqs-consumer   Deployment/sqs-consumer   150/5      0         30        10
-```
+HPA Scaling Up and Down
 
-This shows 150 messages in queue, target of 5 per pod, resulting in 10 active replicas.
+![HPA Scale Up and Down](./images/hpa_scale_up_down.png)
 
-### Step 4: Stop Message Production
+![Scaled Objects](./images/keda_scale_out.png)
 
-Stop sending messages and watch the scale-down behavior:
+**k9s - Expected output**:
 
-```bash
-# Stop the producer
-kubectl scale deployment sqs-producer -n sqs-app --replicas=0
+k9s Scaling Up to 8 Pods
 
-# Continue watching pods
-watch kubectl get pods -n sqs-app
-```
+![k9s Scale Up to 8 Pods](./images/k9s_keda_scale_up_8_pods.png)
+
+**Web Browser - Expected output**:
+
+Web Browser Scaling Up to 8 Pods
+
+![Web Browser Scale Up to 8 Pods](./images/browser_keda_scale_up_8_pods.png)
 
 **What happens**:
 
@@ -741,20 +772,9 @@ watch kubectl get pods -n sqs-app
 4. KEDA gradually scales down the number of pods
 5. After cooldown period (5 minutes by default) with empty queue, pods scale to zero
 
-**Timeline**:
-
-- **0-5 min**: Pods process remaining messages, queue empties
-- **5-10 min**: Cooldown period, no new messages
-- **10+ min**: All consumer pods terminated (scale to zero)
-
 ### Step 5: Verify Scale-to-Zero
 
 ```bash
-# Confirm queue is empty
-aws sqs get-queue-attributes \
-  --queue-url $(cd terraform && terraform output -raw sqs_queue_url) \
-  --attribute-names ApproximateNumberOfMessages
-
 # Confirm no consumer pods running
 kubectl get pods -n sqs-app
 
@@ -762,65 +782,23 @@ kubectl get pods -n sqs-app
 kubectl get hpa -n sqs-app
 ```
 
-**Expected output**:
+**Terminal - Expected output**:
 
-- Queue: 0 messages
-- Consumer pods: None
-- HPA: 0/0 replicas
+HPA Scaled Down
 
-### Step 6: Test Rapid Scale-Up
+![HPA Scaled Down](./images/hpa_scale_down.png)
 
-Restart the producer with higher message rate to see rapid scaling:
+**k9s - Expected output**:
 
-```bash
-# Scale producer back up
-kubectl scale deployment sqs-producer -n sqs-app --replicas=1
+k9s Scaling Down
 
-# Watch for rapid pod creation
-watch kubectl get pods -n sqs-app
-```
+![k9s Scale Down](./images/k9s_keda_scale_down.png)
 
-**What to observe**: Pods scale from 0 to multiple replicas within 1-2 minutes as messages accumulate.
+**Web Browser - Expected output**:
 
-### Understanding KEDA Scaling Behavior
+Web Browser Scaling Down
 
-**Scaling Formula**:
-
-```
-Desired Replicas = ceil(Queue Depth / Target Messages Per Pod)
-```
-
-**Example**:
-
-- Queue has 50 messages
-- Target is 5 messages per pod
-- KEDA creates: ceil(50/5) = 10 consumer pods
-
-**Scale-Up Characteristics**:
-
-- Triggered immediately when queue depth exceeds threshold
-- Aggressive scaling to handle backlog quickly
-- Limited by `maxReplicaCount` setting
-
-**Scale-Down Characteristics**:
-
-- Gradual scale-down as queue empties
-- Cooldown period prevents thrashing
-- Scale-to-zero only after sustained idle period
-
-### Optional: Advanced Monitoring with k9s
-
-If you have k9s installed, use it for better visualization:
-
-```bash
-# Launch k9s
-k9s
-
-# Navigate to:
-# - :pods and filter by namespace :sqs-app
-# - :hpa to see horizontal pod autoscaler
-# - :describe to view KEDA ScaledObject details
-```
+![Web Browser Scale Down](./images/browser_keda_scale_down.png)
 
 ## Clean Up
 
