@@ -29,57 +29,57 @@
 
 This guide demonstrates how to implement event-driven autoscaling for AWS SQS message processing using KEDA (Kubernetes Event-driven Autoscaling) on Amazon EKS. You'll learn how to automatically scale your Kubernetes workloads from zero to hundreds of pods based on the number of messages in an SQS queue, then scale back down to zero when the queue is empty.
 
-**What You'll Build**: A complete infrastructure that processes messages from an AWS SQS queue using Kubernetes pods that automatically scale based on queue depth. When messages arrive, KEDA triggers pod creation. When the queue empties, pods scale down to zero, saving costs.
+**What You'll Build**: A complete infrastructure that processes messages from an AWS SQS queue using Kubernetes pods that automatically scale based on queue depth. When messages arrive, KEDA triggers the creation of a pod. When the queue empties, pods scale down to zero, saving costs.
 
 You can access the complete code in my [GitHub Repository](https://github.com/junglekid/aws-eks-keda-sqs-lab).
 
 ## What is Kubernetes Event-driven Autoscaling (KEDA)?
 
-[KEDA](https://keda.sh/) is an application-level autoscaler for Kubernetes workloads. It extends the basic autoscaling capabilities provided by Kubernetes, allowing you to scale applications in response to real-time events rather than just metrics like CPU or memory usage. Here are the key features and concepts of KEDA:
+[KEDA](https://keda.sh/) is an application-level autoscaler for Kubernetes workloads. It extends the basic autoscaling capabilities provided by Kubernetes, enabling you to scale applications in response to real-time events rather than just metrics such as CPU or memory usage. Here are the key features and concepts of KEDA:
 
 ### Key Features
 
-**Event-Driven**: KEDA works by scaling applications based on events from various sources, such as message queues, databases, timers, or any event source that can provide metrics. This allows for more dynamic and responsive scaling compared to traditional metric-based autoscaling.
+**Event-Driven**: KEDA scales applications based on events from various sources, such as message queues, databases, timers, or any other event source that can provide metrics. This enables more dynamic, responsive scaling than traditional metric-based autoscaling.
 
-**Support for Multiple Event Sources**: KEDA supports a wide range of event sources, including popular message queues like Kafka, RabbitMQ, Azure Service Bus, AWS SQS, and many others. It can also integrate with custom event sources.
+**Support for Multiple Event Sources**: KEDA supports a wide range of event sources, including popular message queues such as Kafka, RabbitMQ, Azure Service Bus, AWS SQS, and more. It can also integrate with custom event sources.
 
-**Seamless Integration with Kubernetes**: KEDA is implemented as a Kubernetes Operator, which means it integrates seamlessly with the Kubernetes ecosystem. It extends Kubernetes by adding new custom resources that define how applications should scale in response to events.
+**Seamless Integration with Kubernetes**: KEDA is implemented as a Kubernetes Operator, enabling seamless integration with the Kubernetes ecosystem. It extends Kubernetes by adding new custom resources that define how applications should scale in response to events.
 
 **ScaledObject Custom Resource**: The key custom resource in KEDA is the `ScaledObject`. This resource defines how a particular deployment or job should scale in response to events. You specify the target event source, the scaling triggers, and other scaling parameters in a `ScaledObject`.
 
 **Scale-to-Zero**: One of the unique features of KEDA is its ability to scale workloads down to zero pods. This means that when there are no events to process, the application can release all its resources, leading to cost savings, especially in cloud environments.
 
-**Horizontal Pod Autoscaler (HPA) Integration**: KEDA can work in conjunction with Kubernetes' built-in Horizontal Pod Autoscaler. It activates the HPA based on event metrics, allowing for a more dynamic and responsive autoscaling mechanism.
+**Horizontal Pod Autoscaler (HPA) Integration**: KEDA can work in conjunction with Kubernetes' built-in Horizontal Pod Autoscaler. It activates the HPA based on event metrics, enabling a more dynamic, responsive autoscaling mechanism.
 
 **Flexible and Extensible**: KEDA is designed to be extensible, allowing for the addition of new scalers (event sources) as needed. Its architecture is modular, which makes it easier to extend and adapt to specific needs.
 
-KEDA is particularly useful for applications that need to respond quickly to fluctuating workloads, such as those processing events from message queues or reacting to real-time data streams. Its ability to scale to zero also makes it an attractive option for cost optimization in cloud-native environments.
+KEDA is particularly useful for applications that need to respond quickly to fluctuating workloads, such as those that process events from message queues or respond to real-time data streams. Its ability to scale to zero also makes it an attractive option for cost optimization in cloud-native environments.
 
 ### Benefits of using KEDA with Amazon EKS
 
-Using Kubernetes Event-driven Autoscaling (KEDA) with Amazon Elastic Kubernetes Service (EKS) offers several benefits, particularly for organizations looking to build and manage scalable, event-driven applications in a cloud environment. Here are some of the key advantages:
+Using Kubernetes Event-driven Autoscaling (KEDA) with Amazon Elastic Kubernetes Service (EKS) offers several benefits, particularly for organizations looking to build and manage scalable, event-driven applications in the cloud. Here are some of the key advantages:
 
-**Efficient Resource Utilization**: KEDA's ability to scale applications based on actual demand, including scaling to zero, ensures efficient use of resources. This is particularly beneficial in a cloud environment like EKS where resource usage directly impacts costs.
+**Efficient Resource Utilization**: KEDA's ability to scale applications based on actual demand, including scaling to zero, ensures efficient resource utilization. This is particularly beneficial in a cloud environment like EKS, where resource usage directly impacts costs.
 
-**Enhanced Scalability for Event-Driven Workloads**: EKS provides a robust platform for running Kubernetes workloads, and KEDA enhances this by enabling more responsive and dynamic scaling based on events. This is ideal for workloads that are event-driven, such as those processing messages from queues or reacting to changes in databases.
+**Enhanced Scalability for Event-Driven Workloads**: EKS provides a robust platform for running Kubernetes workloads, and KEDA further enhances it by enabling more responsive, dynamic scaling based on events. This is ideal for event-driven workloads, such as processing messages from queues or reacting to database changes.
 
 **Cost-Effective**: By scaling workloads to zero when not in use, KEDA helps to reduce costs. In an EKS environment, where you pay for the resources you use, this can lead to significant savings, especially for workloads with variable or sporadic traffic patterns.
 
 **Seamless Integration**: KEDA integrates seamlessly with EKS, allowing for easy deployment and management of event-driven autoscaling. This integration simplifies the operational complexity and reduces the effort required to manage application scaling.
 
-**Support for a Wide Range of Event Sources**: KEDA supports numerous event sources, including those commonly used in AWS environments, like Amazon SQS, SNS, and CloudWatch. This makes it versatile and suitable for various application scenarios in EKS.
+**Support for a Wide Range of Event Sources**: KEDA supports a wide range of event sources, including those commonly used in AWS environments, such as Amazon SQS, SNS, and CloudWatch. This makes it versatile and suitable for various EKS application scenarios.
 
 **Improved Application Performance and Responsiveness**: By automatically scaling based on real-time events, applications can maintain optimal performance levels, responding efficiently to spikes in demand without manual intervention.
 
-**Flexibility and Customization**: KEDA allows for detailed customization of scaling rules and triggers, giving teams the flexibility to tailor the scaling behavior to their specific application needs and traffic patterns.
+**Flexibility and Customization**: KEDA enables detailed customization of scaling rules and triggers, allowing teams to tailor scaling behavior to their specific application needs and traffic patterns.
 
 **Simplified DevOps Processes**: With KEDA handling the complexity of event-driven autoscaling, DevOps teams can focus more on other aspects of application development and infrastructure management, improving overall operational efficiency.
 
-**Better Use of EKS Features**: KEDA complements EKS's existing features, like network policies, security groups, and load balancing, ensuring that the autoscaling process is not just effective but also secure and well-integrated with the overall infrastructure.
+**Better Use of EKS Features**: KEDA complements EKS's existing features, such as network policies, security groups, and load balancing, ensuring that autoscaling is not only effective but also secure and well-integrated with the overall infrastructure.
 
 **Community and Ecosystem Support**: Being an open-source project, KEDA benefits from strong community support and continuous development. This ensures compatibility with the latest Kubernetes features and trends, which is crucial for maintaining a modern cloud-native infrastructure on EKS.
 
-In summary, integrating KEDA with EKS enhances the capabilities of Kubernetes in handling event-driven, dynamic workloads in a cloud environment, leading to improved performance, cost efficiency, and operational simplicity.
+In summary, integrating KEDA with EKS enhances Kubernetes's ability to handle event-driven, dynamic workloads in a cloud environment, leading to improved performance, cost efficiency, and operational simplicity.
 
 ![KEDA Architecture](./images/keda_arch.png)
 
@@ -131,7 +131,7 @@ This solution uses the following AWS and open-source technologies:
 The demo uses a KEDA ScaledObject that defines:
 
 - **Trigger**: AWS SQS queue with specific queue name and region
-- **Queue Length Target**: Number of messages per pod (e.g., 5 messages per pod)
+- **Queue Length Target**: Number of messages per pod (e.g., 10 messages per pod)
 - **Min Replicas**: 0 (allows scale-to-zero)
 - **Max Replicas**: Configurable upper limit (e.g., 30 pods)
 - **Polling Interval**: How often KEDA checks the queue (e.g., every 30 seconds)
@@ -168,7 +168,7 @@ Create a GitHub Personal Access Token with the following scopes:
 
 [Create your token here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic)
 
-**Important**: Save your token securely - you'll need it during Flux installation.
+**Important**: Save your token securely—you'll need it during Flux installation.
 
 ### Verify Prerequisites
 
@@ -237,7 +237,7 @@ terraform {
 ### Step 3: Deploy Infrastructure
 
 ```bash
-# Navigate to terraform directory
+# Navigate to Terraform directory
 cd terraform
 
 # Initialize Terraform
@@ -275,7 +275,7 @@ sqs_queue_name = "keda-demo-queue"
 Update your local kubeconfig to access the newly created EKS cluster:
 
 ```bash
-# Navigate to terraform directory
+# Navigate to the Terraform directory
 cd terraform
 
 # Extract cluster information from Terraform outputs
@@ -306,7 +306,7 @@ You should see your EKS nodes listed and cluster endpoints displayed.
 ### Step 1: Set Environment Variables
 
 ```bash
-# Navigate to terraform directory
+# Navigate to Terraform directory
 cd terraform
 
 # Extract ECR repository URLs from Terraform
@@ -396,7 +396,7 @@ export GITHUB_REPO_NAME='aws-eks-keda-sqs-lab'
 The `configure.sh` script updates application manifests with your specific AWS resources (ECR URLs, SQS queue names, etc.):
 
 ```bash
-# Navigate to scripts directory
+# Navigate to the scripts directory
 cd scripts
 
 # Make script executable (if needed)
@@ -452,6 +452,8 @@ Flux needs 2-5 minutes to:
 
 **Monitor Flux reconciliation**:
 
+**NOTE:** `watch` is not installed by default on macOS. If `homebrew` is installed, `watch` can be installed by running `brew install watch`.
+
 ```bash
 # Watch Flux components
 watch flux get all -A
@@ -497,10 +499,10 @@ flux get kustomizations       # Kustomization applications
 flux logs                     # All component logs
 flux logs --kind=HelmRelease  # Specific resource type logs
 
-# Force reconciliation (useful for testing)
+# Force reconciliation (practical for testing)
 flux reconcile source git flux-system
 
-# Suspend reconciliation (useful during maintenance)
+# Suspend reconciliation (applicable during maintenance)
 flux suspend kustomization apps
 flux suspend helmrelease keda
 
@@ -542,11 +544,11 @@ For comprehensive Flux documentation and examples, see my three-part series:
 
 ## Kubernetes Addons Managed by Flux
 
-Flux automatically installs and manages the following Kubernetes addons. These are deployed before applications to ensure necessary infrastructure is in place.
+Flux automatically installs and manages the following Kubernetes addons. These are deployed before applications to ensure the necessary infrastructure is in place.
 
 ### AWS Load Balancer Controller
 
-- **Purpose**: Provisions AWS Application Load Balancers for Kubernetes Ingress resources
+- **Purpose**: Provision AWS Application Load Balancers for Kubernetes Ingress resources
 - **Namespace**: `kube-system`
 - **Why needed**: Exposes applications externally with native AWS load balancing
 
@@ -681,11 +683,11 @@ kubectl scale deployment sqs-producer -n sqs-app --replicas=1
 kubectl logs -n sqs-app -l app=sqs-producer -f
 ```
 
-**What to observe**: Producer logs showing messages being sent to SQS queue.
+**What to observe**: Producer logs showing messages being sent to the SQS queue.
 
 **Terminal - Expected output**:
 
-Messages being sent to SQS queue
+Messages are being sent to the SQS queue.
 
 ![Log Send Messages](./images/logs_send_messages.png)
 
@@ -693,7 +695,7 @@ Messages being sent to SQS queue
 
 In a new terminal, monitor the scaling activity:
 
-**NOTE:** `watch` is not installed by default on macOS. If `homebrew` is install, `watch` can be installed by running `brew install watch`.
+**NOTE:** `watch` is not installed by default on macOS. If `homebrew` is installed, `watch` can be installed by running `brew install watch`.
 
 ```bash
 kubectl get hpa -n sqs-app
@@ -727,11 +729,11 @@ Web Browser Scaling Up 1 Pod
 
 **What happens**:
 
-1. Messages accumulate in SQS queue
+1. Messages accumulate in the SQS queue
 2. KEDA polls the queue every 30 seconds
-3. When queue depth exceeds threshold (10 messages/pod), KEDA triggers scaling
+3. When the queue depth exceeds the threshold (10 messages/pod), KEDA triggers scaling
 4. Consumer pods are created (1-2 pods initially)
-5. More pods are added as queue depth increases
+5. More pods are added as the queue depth increases
 6. Pods start processing and removing messages from the queue
 
 ### Step 3: Observe Scaling Up and Down
@@ -770,9 +772,9 @@ Web Browser Scaling Up to 8 Pods
 2. Consumer pods continue processing remaining messages
 3. Queue depth decreases as messages are processed
 4. KEDA gradually scales down the number of pods
-5. After cooldown period (5 minutes by default) with empty queue, pods scale to zero
+5. After the cooldown period and with an empty queue, the pods scale to zero
 
-### Step 5: Verify Scale-to-Zero
+### Step 4: Verify Scale-to-Zero
 
 ```bash
 # Confirm no consumer pods running
@@ -802,7 +804,7 @@ Web Browser Scaling Down
 
 ## Clean Up
 
-**Important**: Follow these steps in order to avoid orphaned resources and potential costs.
+**Important**: Follow these steps to avoid orphaned resources and potential costs.
 
 ### Step 1: Suspend Flux Reconciliation
 
@@ -910,7 +912,7 @@ kubectl delete scaledobject <name> -n <namespace>
 ### Step 5: Uninstall Flux
 
 ```bash
-# Uninstall Flux from cluster
+# Uninstall Flux from the cluster
 flux uninstall --silent
 
 # Verify Flux removed
@@ -949,7 +951,7 @@ terraform destroy
 
 ## Conclusion
 
-This guide demonstrated how to implement a production-ready, event-driven autoscaling solution using KEDA with Amazon EKS. You learned how to:
+This guide demonstrates how to implement a production-ready, event-driven autoscaling solution with KEDA on Amazon EKS. You learned how to:
 
 - Deploy a complete EKS infrastructure using Terraform
 - Implement GitOps workflows with Flux for continuous deployment
@@ -965,7 +967,7 @@ This guide demonstrated how to implement a production-ready, event-driven autosc
 
 **GitOps Best Practices**: Flux provides automated, declarative infrastructure management, ensuring your cluster state always matches your Git repository and enabling easy rollbacks and auditing.
 
-**AWS Integration**: KEDA's native support for AWS services like SQS, combined with EKS's managed Kubernetes experience, creates a powerful platform for cloud-native applications.
+**AWS Integration**: KEDA's native support for AWS services, combined with EKS's managed Kubernetes experience, creates a powerful platform for cloud-native applications.
 
 ### Next Steps
 
@@ -985,7 +987,7 @@ This guide demonstrated how to implement a production-ready, event-driven autosc
 
 **Security Enhancements**:
 
-- Enable Pod Security Standards at cluster level
+- Enable Pod Security Standards at the cluster level
 - Implement network policies for zero-trust networking
 - Set up AWS GuardDuty for threat detection
 - Configure AWS Config for compliance monitoring
