@@ -16,9 +16,9 @@ spec:
     authenticationRef:
       name: keda-trigger-auth-aws-credentials
     metadata:
-      queueURL: SQS_QUEUE_URL
+      queueURL: https://sqs.us-west-2.amazonaws.com/704855531002/eks-keda-sqs-lab-queue
       queueLength: "10"
-      awsRegion: "AWS_REGION"
+      awsRegion: "us-west-2"
       identityOwner: operator
 ---
 apiVersion: keda.sh/v1alpha1

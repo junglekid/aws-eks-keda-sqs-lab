@@ -29,8 +29,8 @@ spec:
     nodeSelector:
       karpenter.sh/controller: 'true'
     settings:
-      clusterName: EKS_CLUSTER_NAME
-      interruptionQueue: KARPENTER_INTERRUPTION_QUEUE
+      clusterName: eks-keda-sqs-lab
+      interruptionQueue: Karpenter-eks-keda-sqs-lab
     controller:
       resources:
         requests:

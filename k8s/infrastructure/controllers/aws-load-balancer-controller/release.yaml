@@ -23,5 +23,5 @@ spec:
   values:
     serviceAccount:
       create: true
-    region: AWS_REGION
-    clusterName: EKS_CLUSTER_NAME
+    region: us-west-2
+    clusterName: eks-keda-sqs-lab
