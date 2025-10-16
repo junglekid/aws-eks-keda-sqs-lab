@@ -390,7 +390,6 @@ export GITHUB_REPO_NAME='aws-eks-keda-sqs-lab'
 
 **Security Note**: Never commit your GitHub token to version control.
 
-
 ### Step 2: Run Configuration Script
 
 The `configure.sh` script updates application manifests with your specific AWS resources (ECR URLs, SQS queue names, etc.):
@@ -619,8 +618,8 @@ kubectl get scaledobjects -n sqs-app
 kubectl get hpa -n sqs-app
 
 # View application logs
-kubectl logs -n sqs-app -l app=sqs-consumer
-kubectl logs -n sqs-app -l app=sqs-producer
+kubectl logs -n sqs-app -l name=sqs-consumer
+kubectl logs -n sqs-app -l name=sqs-producer
 ```
 
 ## Demo: See KEDA Autoscaling in Action
@@ -859,8 +858,6 @@ flux delete helmrelease metrics-server --silent
 
 # Cleanup Keda CRDs
 kubectl patch crd ec2nodeclasses.karpenter.k8s.aws -p '{"metadata":{"finalizers":[]}}' --type=merge
-kubectl delete $(kubectl get scaledobjects.keda.sh,scaledjobs.keda.sh -A \
-   -o jsonpath='{"-n "}{.items[*].metadata.namespace}{" "}{.items[*].kind}{"/"}{.items[*].metadata.name}{"\n"}')
 
 # Wait for addons to terminate (2-5 minutes)
 echo "Waiting for addon removal..."
