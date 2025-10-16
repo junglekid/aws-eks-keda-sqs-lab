@@ -6,6 +6,6 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m0s
-  url: https://github.com/junglekid/aws-eks-keda-sqs-lab
+  url: SQS_APP_GITHUB_URL
   ref:
     branch: main

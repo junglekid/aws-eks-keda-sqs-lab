@@ -24,28 +24,28 @@ spec:
       deployment:
         container:
           image:
-            repository: 704855531002.dkr.ecr.us-west-2.amazonaws.com/eks-keda-sqs-lab-consumer
+            repository: ECR_SQS_CONSUMER_REPO
             tag: latest
-          sqsQueueName: eks-keda-sqs-lab-queue
+          sqsQueueName: SQS_QUEUE_NAME
     sqsProducer:
       deployment:
         container:
           image:
-            repository: 704855531002.dkr.ecr.us-west-2.amazonaws.com/eks-keda-sqs-lab-producer
+            repository: ECR_SQS_PRODUCER_REPO
             tag: latest
-          sqsQueueName: eks-keda-sqs-lab-queue
+          sqsQueueName: SQS_QUEUE_NAME
       ingress:
         enabled: true
         annotations:
           alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig":
             { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
-          alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-west-2:704855531002:certificate/00cf3687-c13e-4248-bf14-348df0ad97ef"
+          alb.ingress.kubernetes.io/certificate-arn: "AWS_ACM_SQS_APP_ARN"
           alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
           alb.ingress.kubernetes.io/scheme: internet-facing
           alb.ingress.kubernetes.io/ssl-redirect: "443"
           alb.ingress.kubernetes.io/target-type: ip
-          external-dns.alpha.kubernetes.io/hostname: sqs-app.dallin.brewsentry.com
-        dnsHostname: sqs-app.dallin.brewsentry.com
+          external-dns.alpha.kubernetes.io/hostname: SQS_APP_DOMAIN_NAME
+        dnsHostname: SQS_APP_DOMAIN_NAME
     serviceAccount:
       enabled: true
-      name: sa-aws-sqs-app
+      name: SA_SQS_APP_NAME
