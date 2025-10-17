@@ -48,12 +48,12 @@ metadata:
   annotations:
     kubernetes.io/description: "General purpose EC2NodeClass for running Bottlerocket arm64 nodes"
 spec:
-  role: EKS_NODE_GROUP_IAM_ROLE_NAME
+  role: node_workers-eks-node-group-20251017044011819400000015
   subnetSelectorTerms:
     - tags:
-        karpenter.sh/discovery: EKS_CLUSTER_NAME
+        karpenter.sh/discovery: eks-keda-sqs-lab
   securityGroupSelectorTerms:
     - tags:
-        karpenter.sh/discovery: EKS_CLUSTER_NAME
+        karpenter.sh/discovery: eks-keda-sqs-lab
   amiSelectorTerms:
     - alias: bottlerocket@latest # Amazon Linux 2023 ARM64
