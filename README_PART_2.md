@@ -9,7 +9,7 @@
 
 ## Welcome Back!
 
-In [Part 1](https://www.linkedin.com/pulse/using-keda-scale-aws-sqs-amazon-elastic-kubernetes-service-rasmuson-sebec/) or [Part 1](https://medium.com/@junglekid_40016/using-keda-to-scale-aws-sqs-with-amazon-elastic-kubernetes-service-eks-part-1-introduction-3b58f7920f32),  we explored what KEDA is, why it's essential for event-driven autoscaling on Kubernetes, and reviewed the architecture of our complete solution. Now it's time to build the infrastructure.
+In [Part 1 - LinkedIn](https://www.linkedin.com/pulse/using-keda-scale-aws-sqs-amazon-elastic-kubernetes-service-rasmuson-sebec/) / [Part 1 - Medium](https://medium.com/@junglekid_40016/using-keda-to-scale-aws-sqs-with-amazon-elastic-kubernetes-service-eks-part-1-introduction-3b58f7920f32),  we explored what KEDA is, why it's essential for event-driven autoscaling on Kubernetes, and reviewed the architecture of our complete solution. Now it's time to build the infrastructure.
 
 In this article, you'll:
 

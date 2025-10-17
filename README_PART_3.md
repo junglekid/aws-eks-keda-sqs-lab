@@ -9,7 +9,7 @@
 
 ## Welcome to the Final Part!
 
-In [Part 1](lhttps://www.linkedin.com/pulse/using-keda-scale-aws-sqs-amazon-elastic-kubernetes-service-rasmuson-sebec/), we explored what KEDA is and its benefits for event-driven autoscaling. In [Part 2](link-to-part-2), we built the complete infrastructure with Terraform and Flux.
+In [Part 1 - LinkedIn](lhttps://www.linkedin.com/pulse/using-keda-scale-aws-sqs-amazon-elastic-kubernetes-service-rasmuson-sebec/) / [Part 1 - Medium](https://medium.com/@junglekid_40016/using-keda-to-scale-aws-sqs-with-amazon-elastic-kubernetes-service-eks-part-1-introduction-3b58f7920f32), we explored what KEDA is and its benefits for event-driven autoscaling. In [Part 2 - LinkedIn](https://www.linkedin.com/pulse/using-keda-scale-aws-sqs-amazon-elastic-kubernetes-service-rasmuson-usnkc/?trackingId=i%2FRXZdf%2BReKq5uJXkzN2rA%3D%3D) / [Part 2 - Medium](https://medium.com/@junglekid_40016/using-keda-to-scale-aws-sqs-with-amazon-elastic-kubernetes-service-eks-part-2-architecture-and-6ea6f7d4e2fe), we built the complete infrastructure with Terraform and Flux.
 
 Now it's time to see KEDA in action and learn how to clean up the resources when you're done.
 
