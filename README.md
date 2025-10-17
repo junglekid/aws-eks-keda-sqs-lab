@@ -690,25 +690,43 @@ kubectl get hpa -n sqs-app
 
 ![Web Browser Before Scale Up](./images/browser_before_scale_up.png)
 
-### Step 1: Start Message Production
+### Step 1: Start / Scale Out SQS Producer Deployment
 
-Scale up the producer to begin sending messages to SQS:
+Scale up the sqs-producer to have the sqs-app website available to trigger the creation of messages:
 
 ```bash
 # Start the SQS producer
 kubectl scale deployment sqs-producer -n sqs-app --replicas=1
+```
 
+**Terminal - Expected output**: `deployment.apps/sqs-producer scaled`
+
+**k9s - Expected output**: k9s 1 sqs-producer container running
+
+![k9s SQS Producer](./images/k9s_sqs_producer.png)
+
+### Step 2: Access the SQS App Website and Trigger the creation of messages
+
+- Launch your favorite browser and access the sqs-app website
+- In the `Enter a number of messages to send to AWS SQS Queue`, and enter a high number such as 30000 in the box.
+- Click the `Send Messages (Async)` Button
+
+**Web Browser - Expected output**: Browser - Send Messages
+
+![Browser Send Messages](./images/browser_send_messages.png)
+
+**What to observe**: Producer logs showing messages being sent to the SQS queue.
+
+```bash
 # Monitor producer logs to confirm messages are being sent
 kubectl logs -n sqs-app -l app=sqs-producer -f
 ```
-
-**What to observe**: Producer logs showing messages being sent to the SQS queue.
 
 **Terminal - Expected output**: Messages are being sent to the SQS queue.
 
 ![Log Send Messages](./images/logs_send_messages.png)
 
-### Step 2: Watch KEDA Trigger Scaling
+### Step 3: Watch KEDA Trigger Scaling
 
 In a new terminal, monitor the scaling activity:
 
@@ -745,7 +763,7 @@ watch kubectl get hpa -n sqs-app
 5. More pods are added as the queue depth increases
 6. Pods start processing and removing messages from the queue
 
-### Step 3: Observe Scaling Up and Down
+### Step 4: Observe Scaling Up and Down
 
 ```bash
 # Check current replica count
@@ -777,7 +795,7 @@ kubectl get scaledobjects -n sqs-app aws-sqs-queue-scaledobject -w
 4. KEDA gradually scales down the number of pods
 5. After the cooldown period and with an empty queue, the pods scale to zero
 
-### Step 4: Verify Scale-to-Zero
+### Step 5: Verify Scale-to-Zero
 
 ```bash
 # Confirm no consumer pods running
@@ -787,9 +805,7 @@ kubectl get pods -n sqs-app
 kubectl get hpa -n sqs-app
 ```
 
-**Terminal - Expected output**:
-
-HPA Scaled Down
+**Terminal - Expected output**: HPA Scaled Down
 
 ![HPA Scaled Down](./images/hpa_scale_down.png)
 
